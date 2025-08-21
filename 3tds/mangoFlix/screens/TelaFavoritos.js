@@ -1,3 +1,5 @@
+// src/screens/TelaFavoritos.js
+
 import React from 'react';
 import {
   View,
@@ -7,9 +9,9 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions, // Import Dimensions
+  Dimensions,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; // Trocado para Ionicons
 
 // Por enquanto, a lista de favoritos está vazia
 const favoritosData = [];
@@ -17,7 +19,7 @@ const favoritosData = [];
 // Componente para a mensagem de lista vazia
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
-    <Feather name="star" size={60} color="gray" />
+    <Ionicons name="star-outline" size={60} color="gray" />
     <Text style={styles.emptyText}>Nenhum favorito adicionado.</Text>
     <Text style={styles.emptySubText}>
       Clique na estrela de um filme ou série para adicioná-lo aqui.
@@ -28,18 +30,20 @@ const EmptyListMessage = () => (
 export default function TelaFavoritos() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* CABEÇALHO */}
+      {/* CABEÇALHO (IGUAL AO DA TELA INICIAL) */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Favoritos</Text>
+        <Image
+          source={require('../img/manga-removebg-preview.png')}
+          style={styles.logo}
+        />
         <View style={styles.headerIcons}>
-          <TouchableOpacity>
-            <Feather name="search" size={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={{ marginLeft: 15 }}>
-            <Feather name="user" size={24} color="white" />
-          </TouchableOpacity>
+          <Ionicons name="search-outline" size={26} color="white" style={{ marginRight: 15 }} />
+          <Ionicons name="person-circle-outline" size={28} color="white" />
         </View>
       </View>
+
+      {/* TÍTULO DA PÁGINA */}
+      <Text style={styles.pageTitle}>Favoritos</Text>
 
       {/* GRADE DE FILMES FAVORITOS */}
       <FlatList
@@ -52,7 +56,6 @@ export default function TelaFavoritos() {
             <Image source={{ uri: item.image }} style={styles.posterImage} />
           </TouchableOpacity>
         )}
-        // Mostra a mensagem quando a lista está vazia
         ListEmptyComponent={EmptyListMessage}
       />
     </SafeAreaView>
@@ -69,17 +72,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
-  headerTitle: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: 'bold',
+  logo: {
+    width: 35,
+    height: 35,
   },
   headerIcons: {
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pageTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+    paddingHorizontal: 16,
+    marginBottom: 15,
   },
   container: {
     flex: 1,
@@ -99,7 +109,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Dimensions.get('window').height / 5, // Centraliza na tela
+    marginTop: Dimensions.get('window').height / 5,
   },
   emptyText: {
     color: 'white',
