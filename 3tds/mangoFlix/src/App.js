@@ -12,13 +12,16 @@ import TelaInicial from '../screens/TelaInicial';
 export default function App() {
   return (
     <NavigationContainer>
-      <Drawer.Navigator initialRouteName="TelaInicial">
-      <Drawer.Screen name="TelaInicial" component={TelaInicial}>
-
-      </Drawer.Screen>
+      <Drawer.Navigator 
+        initialRouteName="TelaInicial"
+        screenOptions={{
+          headerShown: false
+        }}
+      >
+        <Drawer.Screen name="TelaInicial" component={TelaInicial}>
+        </Drawer.Screen>
       </Drawer.Navigator>
     </NavigationContainer>
-
   );
 }
 
