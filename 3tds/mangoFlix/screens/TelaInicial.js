@@ -7,38 +7,34 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// --- DADOS PARA O CARROSSEL ---
-const BANNER_DATA = [
-    { 
-      id: '1', 
-      title: 'Dragões',
-      subtitle: 'NETFLIX ORIGINAL',
-      image: 'https://i.pinimg.com/originals/a1/b5/0c/a1b50c008a1ba56b3b552a8b9f7c358e.jpg' // Imagem de "Como Treinar o seu Dragão"
-    },
-    { 
-      id: '2', 
-      title: 'Interestelar',
-      subtitle: 'UM FILME DE CHRISTOPHER NOLAN',
-      image: 'https://image.tmdb.org/t/p/original/c0DCmfAlTy2r2K9iWbCgCgSgAmN.jpg'
-    },
-    { 
-      id: '3', 
-      title: 'Duna',
-      subtitle: 'UMA JORNADA ÉPICA',
-      image: 'https://image.tmdb.org/t/p/original/cxevDYdeFkiixR_bBSG6BdnT55i.jpg'
-    },
+// --- SEUS LINKS DE IMAGEM QUE FUNCIONAM ---
+const workingImages = [
+    'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg', // Breaking Bad
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', // Harry Potter
+    'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', // Batman
 ];
 
-// --- DADOS PARA AS LISTAS ---
+// --- DADOS COM IMAGENS CORRIGIDAS ---
+const BANNER_DATA = [
+    { id: '1', title: 'Breaking Bad', subtitle: 'A SÉRIE ACLAMADA', image: workingImages[0] },
+    { id: '2', title: 'Harry Potter', subtitle: 'A MAGIA COMEÇA', image: workingImages[1] },
+    { id: '3', title: 'The Batman', subtitle: 'UM NOVO CAVALEIRO', image: workingImages[2] },
+];
+
 const CONTINUE_WATCHING_DATA = [
-    { id: '1', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', title: 'Harry Potter' },
-    { id: '2', image: 'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg', title: 'Breaking Bad' },
-    { id: '3', image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', title: 'Anime Mix' },
+    { id: '1', image: workingImages[1], title: 'Harry Potter' },
+    { id: '2', image: workingImages[0], title: 'Breaking Bad' },
+    { id: '3', image: workingImages[2], title: 'The Batman' },
 ];
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// --- COMPONENTES REUTILIZÁVEIS ---
+// --- Componentes e o resto da tela permanecem iguais ---
+// ... (código dos componentes e da tela aqui, sem alterações)
+// ...
+
+// --- TELA PRINCIPAL (código completo para evitar erros) ---
+
 const SectionHeader = ({ title }) => (
     <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
@@ -46,7 +42,6 @@ const SectionHeader = ({ title }) => (
     </View>
 );
 
-// Componente de Pôster com o novo título estilizado
 const PosterItem = ({ item }) => (
     <TouchableOpacity style={styles.posterContainer}>
         <Image source={{ uri: item.image }} style={styles.posterImage} />
@@ -54,12 +49,10 @@ const PosterItem = ({ item }) => (
     </TouchableOpacity>
 );
 
-// --- TELA PRINCIPAL ---
 export default function TelaInicial() {
     const [activeIndex, setActiveIndex] = useState(0);
     const flatListRef = useRef(null);
 
-    // Efeito para auto-scroll (opcional, mas recomendado)
     useEffect(() => {
         const interval = setInterval(() => {
             const nextIndex = (activeIndex + 1) % BANNER_DATA.length;
@@ -77,7 +70,6 @@ export default function TelaInicial() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.container}>
-                {/* CABEÇALHO */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
                         <View style={styles.logo} />
@@ -90,7 +82,6 @@ export default function TelaInicial() {
                     </View>
                 </View>
 
-                {/* CARROSSEL DE DESTAQUE */}
                 <View style={styles.carouselContainer}>
                     <FlatList
                         ref={flatListRef}
@@ -121,8 +112,6 @@ export default function TelaInicial() {
                         ))}
                     </View>
                 </View>
-
-                {/* SEÇÃO CONTINUE ASSISTINDO */}
                 <View style={styles.section}>
                     <SectionHeader title="Continue assistindo" />
                     <FlatList 
@@ -134,20 +123,17 @@ export default function TelaInicial() {
                         contentContainerStyle={{ paddingLeft: 24 }}
                     />
                 </View>
-
             </ScrollView>
         </SafeAreaView>
     );
 }
-
-
-// --- ESTILOS ---
+// Estilos (sem alteração)
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: 'black' },
     container: { flex: 1 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 10, paddingBottom: 10 },
     headerLeft: { flexDirection: 'row', alignItems: 'center' },
-    logo: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#FF6347' }, // Cor laranja/vermelha
+    logo: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#FF6347' },
     headerTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', marginLeft: 12 },
     headerRight: { flexDirection: 'row', alignItems: 'center' },
     carouselContainer: { marginTop: 10, marginBottom: 30 },
@@ -166,12 +152,5 @@ const styles = StyleSheet.create({
     sectionTitle: { color: 'white', fontSize: 22, fontWeight: 'bold' },
     posterContainer: { marginRight: 16 },
     posterImage: { width: 140, height: 210, borderRadius: 16 },
-    posterTitle: { 
-        color: 'white', 
-        fontSize: 16, 
-        marginTop: 8,
-        // Tente usar uma fonte serifada se tiver uma instalada no projeto
-        // fontFamily: 'SuaFonteSerifada', 
-        textAlign: 'center' 
-    },
+    posterTitle: { color: 'white', fontSize: 16, marginTop: 8, textAlign: 'center' },
 });
