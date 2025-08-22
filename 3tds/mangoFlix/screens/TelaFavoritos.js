@@ -1,148 +1,134 @@
 // src/screens/TelaFavoritos.js
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
+  ScrollView,
   FlatList,
   Image,
   TouchableOpacity,
-  SafeAreaView,
-  Dimensions, // Usado para centralizar a mensagem de "lista vazia"
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// --- SEUS LINKS DE IMAGEM QUE FUNCIONAM ---
-const workingImages = [
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s',
-  'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg',
-  'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg',
+// --- DADOS MOCK (separados por categoria, como no design) ---
+const favoriteMovies = [
+    { id: '1', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', title: 'Harry Potter' },
+    { id: '2', image: 'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg', title: 'Breaking Bad' },
+    { id: '3', image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', title: 'Anime Mix' },
 ];
 
-// --- DADOS INICIAIS ---
-// Para simular, vamos começar com alguns favoritos.
-// No futuro, esta lista virá do armazenamento do app ou de uma API.
-const initialFavorites = [
-    { id: 'fav1', image: workingImages[0] },
-    { id: 'fav2', image: workingImages[1] },
-    { id: 'fav3', image: workingImages[2] },
+const favoriteSeries = [
+    { id: '1', image: 'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg', title: 'Breaking Bad' },
+    { id: '2', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', title: 'Harry Potter' },
+    { id: '3', image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', title: 'Anime Mix' },
 ];
 
-// Componente para a mensagem de lista vazia
-const EmptyListMessage = () => (
-  <View style={styles.emptyContainer}>
-    <Ionicons name="star-outline" size={60} color="gray" />
-    <Text style={styles.emptyText}>Sua lista de favoritos está vazia.</Text>
-    <Text style={styles.emptySubText}>
-      Adicione filmes e séries à sua lista para vê-los aqui.
-    </Text>
-  </View>
+const continueWatching = [
+    { id: '1', image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', title: 'Anime Mix' },
+    { id: '2', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', title: 'Harry Potter' },
+    { id: '3', image: 'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg', title: 'Breaking Bad' },
+];
+
+
+// --- COMPONENTES REUTILIZÁVEIS ---
+const SectionHeader = ({ title }) => (
+    <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <Ionicons name="chevron-forward-outline" size={24} color="white" />
+    </View>
 );
 
-export default function TelaFavoritos() {
-  // Estado para guardar a lista de favoritos
-  const [favoritos, setFavoritos] = useState(initialFavorites);
-  
-  // DICA: Para testar a tela vazia, troque a linha acima por esta:
-  // const [favoritos, setFavoritos] = useState([]);
+const PosterItem = ({ item }) => (
+    <TouchableOpacity style={styles.posterContainer}>
+        <Image source={{ uri: item.image }} style={styles.posterImage} />
+        <Text style={styles.posterTitle}>{item.title}</Text>
+    </TouchableOpacity>
+);
 
+
+export default function TelaFavoritos() {
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* CABEÇALHO */}
       <View style={styles.header}>
-        <Image
-          source={require('../img/manga-removebg-preview.png')}
-          style={styles.logo}
-        />
-        <View style={styles.headerIcons}>
-          <Ionicons name="search-outline" size={26} color="white" style={{ marginRight: 15 }} />
+        <Text style={styles.headerTitle}>Favoritos</Text>
+        <View style={styles.headerRight}>
+          <Ionicons name="search-outline" size={26} color="white" style={{ marginRight: 20 }} />
           <Ionicons name="person-circle-outline" size={28} color="white" />
+          <Ionicons name="chevron-down-outline" size={16} color="white" style={{ marginLeft: 5 }} />
         </View>
       </View>
 
-      <Text style={styles.pageTitle}>Favoritos</Text>
+      <ScrollView>
+        {/* SEÇÃO FILMES */}
+        <View style={styles.section}>
+          <SectionHeader title="Filmes" />
+          <FlatList
+            data={favoriteMovies}
+            renderItem={PosterItem}
+            keyExtractor={item => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: 24 }}
+          />
+        </View>
 
-      {/* GRADE DE FAVORITOS */}
-      <FlatList
-        data={favoritos}
-        keyExtractor={(item) => item.id}
-        numColumns={3}
-        style={styles.gridContainer}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.posterContainer}>
-            <Image source={{ uri: item.image }} style={styles.posterImage} />
-          </TouchableOpacity>
-        )}
-        // Componente que aparece se a lista 'favoritos' estiver vazia
-        ListEmptyComponent={EmptyListMessage}
-      />
+        {/* SEÇÃO SÉRIES */}
+        <View style={styles.section}>
+          <SectionHeader title="Séries" />
+          <FlatList
+            data={favoriteSeries}
+            renderItem={PosterItem}
+            keyExtractor={item => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: 24 }}
+          />
+        </View>
+
+        {/* SEÇÃO CONTINUE ASSISTINDO */}
+        <View style={styles.section}>
+          <SectionHeader title="Continue assistindo" />
+          <FlatList
+            data={continueWatching}
+            renderItem={PosterItem}
+            keyExtractor={item => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: 24 }}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 // --- ESTILOS ---
 const styles = StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: '#121212',
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingTop: 10,
-      paddingBottom: 10,
-    },
-    logo: {
-      width: 35,
-      height: 35,
-    },
-    headerIcons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    pageTitle: {
-      color: 'white',
-      fontSize: 24,
-      fontWeight: 'bold',
-      paddingHorizontal: 16,
-      marginTop: 10,
-      marginBottom: 15,
-    },
-    gridContainer: {
-      flex: 1,
-      paddingHorizontal: 5,
-    },
-    posterContainer: {
-      flex: 1,
-      margin: 5,
-      aspectRatio: 2 / 3,
-    },
-    posterImage: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 10,
-    },
-    // Estilos para a mensagem de "lista vazia"
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: Dimensions.get('window').height / 5, // Empurra para o meio da tela
-    },
-    emptyText: {
-      color: 'white',
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginTop: 20,
-    },
-    emptySubText: {
-      color: 'gray',
-      fontSize: 14,
-      textAlign: 'center',
-      marginTop: 10,
-      paddingHorizontal: 40,
-    },
-  });
+  safeArea: { flex: 1, backgroundColor: 'black' },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingHorizontal: 24, 
+    paddingTop: 10, 
+    paddingBottom: 20 
+  },
+  headerTitle: { color: 'white', fontSize: 22, fontWeight: 'bold' },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
+  section: { marginBottom: 30, marginTop: 10 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 16 },
+  sectionTitle: { color: 'white', fontSize: 22, fontWeight: 'bold' },
+  posterContainer: { marginRight: 16 },
+  posterImage: { width: 140, height: 210, borderRadius: 16 },
+  posterTitle: { 
+      color: 'white', 
+      fontSize: 16, 
+      marginTop: 8,
+      // fontFamily: 'SuaFonteSerifada',
+      textAlign: 'center' 
+  },
+});
