@@ -9,51 +9,55 @@ import {
   FlatList,
   TouchableOpacity,
   ImageBackground,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 
-// --- DADOS MOCK (SIMULANDO DADOS DE UMA API COM IDs REAIS) ---
-const BANNERS_DATA = [
-  { id: 1011985, type: 'movie', title: "Kung Fu Panda 4", subtitle: "TRAILER OFICIAL", image: "https://i.ytimg.com/vi/pPeyZiQIlOg/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAuamQPP_Hb4QOYmM2eXKlEdozpuQ" },
-  { id: 708, type: 'movie', title: "Shrek 2", subtitle: "ASSISTA AGORA", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYakEYlsmxRF7sOsAFYzBNWpgFMUo2nWzaPQ&s" },
-  { id: 315162, type: 'movie', title: "O Gato de Botas 2", subtitle: "AGORA NA PLATAFORMA", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRA61cIcSe2saK87epjSei511RYKd750WYIow&s" },
-  { id: 569094, type: 'movie', title: "Homem-Aranha: Através do Aranhaverso", subtitle: "CINEMAS AGORA", image: "https://m.media-amazon.com/images/S/pv-target-images/3c7c45988ed34fe4628aed9d51507061434432482279e1b69f8fd11ced6869bf.jpg" },
-];
+const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-const CONTINUE_WATCHING_DATA = [
-  { id: 299534, type: 'movie', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s", progress: 0.7 },
-  { id: 1399, type: 'tv', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg", progress: 0.2 },
-  { id: 496243, type: 'movie', image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg", progress: 0.9 },
-  { id: 66732, type: 'tv', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s", progress: 0.7 },
-  { id: 1402, type: 'tv', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg", progress: 0.2 },
-];
+// --- NOVOS DADOS DINÂMICOS ---
+const fetchTrending = async () => {
+  const response = await axios.get(
+    `https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_API_KEY}&language=pt-BR`
+  );
+  return response.data.results;
+};
 
-const RELEASES_DATA = [
-  { id: 24428, type: 'movie', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s" },
-  { id: 872585, type: 'movie', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg" },
-  { id: 550, type: 'movie', image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg" },
-  { id: 157336, type: 'movie', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s" },
-  { id: 507086, type: 'movie', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg" },
-];
+const fetchPopularMovies = async () => {
+  const response = await axios.get(
+    `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=pt-BR`
+  );
+  return response.data.results;
+};
 
-const RECOMMENDED_DATA = [
-  { id: 60622, type: 'tv', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s" },
-  { id: 62286, type: 'tv', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg" },
-  { id: 496243, type: 'movie', image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg" },
-  { id: 634649, type: 'movie', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s" },
-  { id: 62560, type: 'tv', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg" },
-];
+const fetchTopRatedSeries = async () => {
+  const response = await axios.get(
+    `https://api.themoviedb.org/3/tv/top_rated?api_key=${TMDB_API_KEY}&language=pt-BR`
+  );
+  return response.data.results;
+};
 
-const TRENDING_NOW_DATA = [
-  { id: 1726, type: 'movie', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s" },
-  { id: 1667, type: 'tv', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg" },
-  { id: 1400, type: 'tv', image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg" },
-  { id: 585244, type: 'movie', image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s" },
-  { id: 1403, type: 'tv', image: "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg" },
-];
-
-// --- COMPONENTES REUTILIZÁVEIS ---
+// Componente para o pôster de filmes
+const PosterItem = ({ item, navigation }) => (
+  <TouchableOpacity
+    style={styles.posterContainer}
+    onPress={() => {
+      if (item.media_type === "movie" || !item.media_type) {
+        navigation.navigate("DetalhesFilme", { filmeId: item.id });
+      } else if (item.media_type === "tv") {
+        navigation.navigate("DetalhesSerie", { serieId: item.id });
+      }
+    }}
+  >
+    <Image
+      source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+      style={styles.posterImage}
+    />
+    <Text style={styles.posterTitle}>{item.title || item.name}</Text>
+  </TouchableOpacity>
+);
 
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
@@ -62,64 +66,55 @@ const SectionHeader = ({ title }) => (
   </View>
 );
 
-// Componente para o pôster de filmes
-const PosterItem = ({ item, navigation }) => (
-  <TouchableOpacity
-    style={styles.posterContainer}
-    onPress={() => {
-      if (item.type === 'movie') {
-        navigation.navigate('DetalhesFilme', { filmeId: item.id });
-      } else if (item.type === 'tv') {
-        navigation.navigate('DetalhesSerie', { serieId: item.id });
-      }
-    }}
-  >
-    <Image source={{ uri: item.image }} style={styles.posterImage} />
-  </TouchableOpacity>
-);
-
-const ContinueWatchingItem = ({ item, navigation }) => (
-  <TouchableOpacity
-    style={styles.posterContainer}
-    onPress={() => {
-      if (item.type === 'movie') {
-        navigation.navigate('DetalhesFilme', { filmeId: item.id });
-      } else if (item.type === 'tv') {
-        navigation.navigate('DetalhesSerie', { serieId: item.id });
-      }
-    }}
-  >
-    <Image source={{ uri: item.image }} style={styles.posterImage} />
-    <View style={styles.progressBarBackground}>
-      <View
-        style={[styles.progressBarFill, { width: `${item.progress * 100}%` }]}
-      />
-    </View>
-  </TouchableOpacity>
-);
-
-// --- TELA PRINCIPAL ---
-
 export default function TelaInicial() {
-  const navigation = useNavigation(); // Adiciona o hook de navegação
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const navigation = useNavigation();
+  const [banners, setBanners] = useState([]);
+  const [releases, setReleases] = useState([]);
+  const [recommended, setRecommended] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentBannerIndex(
-        (prevIndex) => (prevIndex + 1) % BANNERS_DATA.length
-      );
-    }, 2000);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [
+          trendingData,
+          popularMovies,
+          topRatedSeries,
+        ] = await Promise.all([
+          fetchTrending(),
+          fetchPopularMovies(),
+          fetchTopRatedSeries(),
+        ]);
 
-    return () => clearInterval(interval);
+        setBanners(trendingData.slice(0, 4));
+        setReleases(popularMovies.slice(0, 10));
+        setRecommended(topRatedSeries.slice(0, 10));
+        setTrending(trendingData.slice(0, 10));
+      } catch (error) {
+        console.error("Erro ao carregar dados da página inicial:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const currentBanner = BANNERS_DATA[currentBannerIndex];
+  if (loading) {
+    return (
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#F5A623" />
+      </View>
+    );
+  }
+
+  const currentBanner = banners[0];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
-        {/* CABEÇALHO */}
         <View style={styles.header}>
           <Image
             source={require("../img/manga-removebg-preview.png")}
@@ -136,65 +131,41 @@ export default function TelaInicial() {
           </View>
         </View>
 
-        {/* BANNER DE DESTAQUE */}
-        <View style={styles.bannerContainer}>
-          <Text style={styles.sectionTitleBanner}>Em alta</Text>
-          <TouchableOpacity
-            onPress={() => {
-              if (currentBanner.type === 'movie') {
-                navigation.navigate('DetalhesFilme', { filmeId: currentBanner.id });
-              } else if (currentBanner.type === 'tv') {
-                navigation.navigate('DetalhesSerie', { serieId: currentBanner.id });
-              }
-            }}
-          >
-            <ImageBackground
-              source={{ uri: currentBanner.image }}
-              style={styles.bannerImage}
-              imageStyle={{ borderRadius: 12 }}
+        {currentBanner && (
+          <View style={styles.bannerContainer}>
+            <Text style={styles.sectionTitleBanner}>Em alta</Text>
+            <TouchableOpacity
+              onPress={() => {
+                if (currentBanner.media_type === 'movie') {
+                  navigation.navigate('DetalhesFilme', { filmeId: currentBanner.id });
+                } else if (currentBanner.media_type === 'tv') {
+                  navigation.navigate('DetalhesSerie', { serieId: currentBanner.id });
+                }
+              }}
             >
-              <View style={styles.bannerOverlay}>
-                <Text style={styles.bannerTitle}>{currentBanner.title}</Text>
-                <Text style={styles.bannerSubtitle}>
-                  {currentBanner.subtitle}
-                </Text>
-                <TouchableOpacity style={styles.watchButton}>
-                  <Text style={styles.watchButtonText}>Assista Agora</Text>
-                </TouchableOpacity>
-              </View>
-            </ImageBackground>
-          </TouchableOpacity>
-          <View style={styles.paginationDots}>
-            {BANNERS_DATA.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  index === currentBannerIndex && styles.dotActive,
-                ]}
-              />
-            ))}
+              <ImageBackground
+                source={{ uri: `https://image.tmdb.org/t/p/w500${currentBanner.poster_path}` }}
+                style={styles.bannerImage}
+                imageStyle={{ borderRadius: 12 }}
+              >
+                <View style={styles.bannerOverlay}>
+                  <Text style={styles.bannerTitle}>{currentBanner.title || currentBanner.name}</Text>
+                  <Text style={styles.bannerSubtitle}>
+                    {currentBanner.media_type === 'movie' ? 'Filme' : 'Série'} em destaque
+                  </Text>
+                  <TouchableOpacity style={styles.watchButton}>
+                    <Text style={styles.watchButtonText}>Ver Detalhes</Text>
+                  </TouchableOpacity>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
           </View>
-        </View>
+        )}
 
-        {/* SEÇÃO CONTINUE ASSISTINDO */}
-        <View style={styles.section}>
-          <SectionHeader title="Continue assistindo" />
-          <FlatList
-            data={CONTINUE_WATCHING_DATA}
-            renderItem={({ item }) => <ContinueWatchingItem item={item} navigation={navigation} />}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 16 }}
-          />
-        </View>
-
-        {/* SEÇÃO LANÇAMENTOS */}
         <View style={styles.section}>
           <SectionHeader title="Lançamentos" />
           <FlatList
-            data={RELEASES_DATA}
+            data={releases}
             renderItem={({ item }) => <PosterItem item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id.toString()}
             horizontal
@@ -203,11 +174,10 @@ export default function TelaInicial() {
           />
         </View>
 
-        {/* SEÇÃO RECOMENDADO PARA VOCÊ */}
         <View style={styles.section}>
           <SectionHeader title="Recomendado para Você" />
           <FlatList
-            data={RECOMMENDED_DATA}
+            data={recommended}
             renderItem={({ item }) => <PosterItem item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id.toString()}
             horizontal
@@ -216,11 +186,10 @@ export default function TelaInicial() {
           />
         </View>
 
-        {/* SEÇÃO EM ALTA AGORA */}
         <View style={styles.section}>
           <SectionHeader title="Em Alta Agora" />
           <FlatList
-            data={TRENDING_NOW_DATA}
+            data={trending}
             renderItem={({ item }) => <PosterItem item={item} navigation={navigation} />}
             keyExtractor={(item) => item.id.toString()}
             horizontal
@@ -233,29 +202,70 @@ export default function TelaInicial() {
   );
 }
 
-// Os estilos permanecem os mesmos
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#121212" },
   container: { flex: 1 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
   logo: { width: 35, height: 35 },
   headerIcons: { flexDirection: "row", alignItems: "center" },
   bannerContainer: { paddingHorizontal: 16, marginTop: 10 },
-  sectionTitleBanner: { fontSize: 22, fontWeight: "bold", color: "white", marginBottom: 12 },
-  bannerImage: { width: "100%", height: 200, justifyContent: "flex-end" },
-  bannerOverlay: { backgroundColor: "rgba(0,0,0,0.4)", padding: 12, borderBottomLeftRadius: 12, borderBottomRightRadius: 12 },
+  sectionTitleBanner: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 12,
+  },
+  bannerImage: {
+    width: "100%",
+    height: 200,
+    justifyContent: "flex-end",
+  },
+  bannerOverlay: {
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 12,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+  },
   bannerTitle: { color: "white", fontSize: 24, fontWeight: "bold" },
-  bannerSubtitle: { color: "white", fontSize: 14, fontWeight: "300", letterSpacing: 1, marginTop: 4 },
-  watchButton: { backgroundColor: "rgba(255, 255, 255, 0.9)", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, alignSelf: "flex-start", marginTop: 12 },
+  bannerSubtitle: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "300",
+    letterSpacing: 1,
+    marginTop: 4,
+  },
+  watchButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+    marginTop: 12,
+  },
   watchButtonText: { color: "black", fontWeight: "bold" },
-  paginationDots: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 12 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "gray", marginHorizontal: 4 },
-  dotActive: { backgroundColor: "white" },
   section: { marginTop: 25, paddingBottom: 5 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginBottom: 12 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
   sectionTitle: { color: "white", fontSize: 20, fontWeight: "bold" },
   posterContainer: { marginRight: 10 },
   posterImage: { width: 120, height: 180, borderRadius: 8 },
-  progressBarBackground: { height: 4, backgroundColor: "#404040", borderRadius: 2, marginTop: -4, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, overflow: "hidden" },
-  progressBarFill: { height: "100%", backgroundColor: "#E50914" },
+  posterTitle: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: "center",
+    maxWidth: 120,
+  },
 });

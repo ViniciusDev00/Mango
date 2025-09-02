@@ -1,6 +1,6 @@
 // src/screens/TelaSeries.js
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,144 +10,61 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 
-// --- ATUALIZADO: Usando IDs de séries reais do TMDb ---
-const allSeries = [
-  // Drama
-  {
-    id: 1399,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Drama",
-  }, // Game of Thrones
-  {
-    id: 456,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Drama",
-  }, // The Simpsons
-  {
-    id: 1402,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Drama",
-  }, // The Walking Dead
-  {
-    id: 62560,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Drama",
-  }, // Mr. Robot
-  {
-    id: 66732,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Drama",
-  }, // Stranger Things
-  // Fantasia
-  {
-    id: 60735,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Fantasia",
-  }, // The Flash
-  {
-    id: 60622,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Fantasia",
-  }, // Rick and Morty
-  {
-    id: 62286,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Fantasia",
-  }, // The Crown
-  {
-    id: 71912,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Fantasia",
-  }, // The Good Doctor
-  {
-    id: 690,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Fantasia",
-  }, // O Mandaloriano
-  // Comédia
-  {
-    id: 2316,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Comédia",
-  }, // The Office
-  {
-    id: 1667,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Comédia",
-  }, // Seinfeld
-  {
-    id: 1400,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Comédia",
-  }, // The Big Bang Theory
-  {
-    id: 1416,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Comédia",
-  }, // Friends
-  {
-    id: 641,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Comédia",
-  }, // South Park
-  // Crime
-  {
-    id: 82856,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Crime",
-  }, // O Mandaloriano
-  {
-    id: 63174,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Crime",
-  }, // Lucifer
-  {
-    id: 1403,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Crime",
-  }, // The Flash
-  {
-    id: 37854,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Crime",
-  }, // The Walking Dead
-  {
-    id: 1399,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Crime",
-  }, // Stranger Things
-];
+const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-const categories = ["Todos", "Drama", "Fantasia", "Comédia", "Crime"];
+// Mapeamento dos gêneros da sua tela para os IDs da API do TMDb
+const genreMap = {
+  Todos: null,
+  Drama: 18,
+  Fantasia: 14,
+  Comédia: 35,
+  Crime: 80,
+};
+
+const categories = Object.keys(genreMap);
 
 export default function TelaSeries() {
-  const navigation = useNavigation(); // Adiciona o hook de navegação
+  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [series, setSeries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredSeries = useMemo(() => {
-    if (selectedCategory === "Todos") {
-      return allSeries;
-    }
-    return allSeries.filter((serie) => serie.category === selectedCategory);
+  useEffect(() => {
+    const fetchSeries = async () => {
+      try {
+        setLoading(true);
+        const genreId = genreMap[selectedCategory];
+        let url = `https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc`;
+
+        if (genreId) {
+          url += `&with_genres=${genreId}`;
+        }
+
+        const response = await axios.get(url);
+        setSeries(response.data.results);
+      } catch (error) {
+        console.error("Erro ao buscar séries:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSeries();
   }, [selectedCategory]);
+
+  if (loading) {
+    return (
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#F5A623" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -195,19 +112,24 @@ export default function TelaSeries() {
       </View>
 
       <FlatList
-        data={filteredSeries}
+        data={series}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         style={styles.gridContainer}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.posterContainer}
-            // Navega para a nova tela de detalhes de série
             onPress={() =>
               navigation.navigate("DetalhesSerie", { serieId: item.id })
             }
           >
-            <Image source={{ uri: item.image }} style={styles.posterImage} />
+            <Image
+              source={{
+                uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+              }}
+              style={styles.posterImage}
+            />
+            <Text style={styles.posterTitle}>{item.name}</Text>
           </TouchableOpacity>
         )}
       />
@@ -215,7 +137,6 @@ export default function TelaSeries() {
   );
 }
 
-// Os estilos permanecem os mesmos
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#121212" },
   header: {
@@ -235,7 +156,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 10,
   },
-  filterContainer: { paddingHorizontal: 16, paddingVertical: 15 },
+  filterContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+  },
   categoryButton: {
     marginRight: 12,
     paddingVertical: 8,
@@ -245,10 +169,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "transparent",
   },
-  categoryButtonActive: { backgroundColor: "#F5A623", borderColor: "#F5A623" },
-  categoryButtonText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
-  categoryButtonTextActive: { color: "#121212" },
-  gridContainer: { flex: 1, paddingHorizontal: 5 },
-  posterContainer: { flex: 1, margin: 5, aspectRatio: 2 / 3 },
-  posterImage: { width: "100%", height: "100%", borderRadius: 10 },
+  categoryButtonActive: {
+    backgroundColor: "#F5A623",
+    borderColor: "#F5A623",
+  },
+  categoryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  categoryButtonTextActive: {
+    color: "#121212",
+  },
+  gridContainer: {
+    flex: 1,
+    paddingHorizontal: 5,
+  },
+  posterContainer: {
+    flex: 1,
+    margin: 5,
+    aspectRatio: 2 / 3,
+  },
+  posterImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  posterTitle: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: "center",
+  },
 });

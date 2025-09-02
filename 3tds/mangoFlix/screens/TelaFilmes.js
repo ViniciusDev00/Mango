@@ -1,6 +1,6 @@
 // src/screens/TelaFilmes.js
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,174 +10,62 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 
-// --- ATUALIZADO: Usando IDs de filmes reais do TMDb para que a navegação funcione ---
-const allMovies = [
-  // Ação
-  {
-    id: 299534,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Ação",
-  },
-  {
-    id: 496243,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Ação",
-  },
-  {
-    id: 1011985,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Ação",
-  },
-  {
-    id: 507086,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Ação",
-  },
-  {
-    id: 550,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Ação",
-  },
-  {
-    id: 24428,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Ação",
-  },
-  // Ficção
-  {
-    id: 634649,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Ficção",
-  },
-  {
-    id: 872585,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Ficção",
-  },
-  {
-    id: 157336,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Ficção",
-  },
-  {
-    id: 1726,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Ficção",
-  },
-  {
-    id: 76600,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Ficção",
-  },
-  {
-    id: 19995,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Ficção",
-  },
-  // Animação
-  {
-    id: 1011985,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Animação",
-  },
-  {
-    id: 315162,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Animação",
-  },
-  {
-    id: 496243,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Animação",
-  },
-  {
-    id: 359410,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Animação",
-  },
-  {
-    id: 508947,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Animação",
-  },
-  {
-    id: 512200,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Animação",
-  },
-  // Terror
-  {
-    id: 585244,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Terror",
-  },
-  {
-    id: 346364,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Terror",
-  },
-  {
-    id: 580489,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Terror",
-  },
-  {
-    id: 5752,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-    category: "Terror",
-  },
-  // Fantasia
-  {
-    id: 438631,
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-    category: "Fantasia",
-  },
-  {
-    id: 122906,
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-    category: "Fantasia",
-  },
-];
+const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-const categories = [
-  "Todos",
-  "Ação",
-  "Ficção",
-  "Animação",
-  "Terror",
-  "Fantasia",
-];
+// Mapeamento dos gêneros da sua tela para os IDs da API do TMDb
+const genreMap = {
+  Todos: null, // 'null' para não filtrar por gênero
+  Ação: 28,
+  Ficção: 878,
+  Animação: 16,
+  Terror: 27,
+  Fantasia: 14,
+};
+
+const categories = Object.keys(genreMap);
 
 export default function TelaFilmes() {
-  const navigation = useNavigation(); // Hook de navegação
+  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredMovies = useMemo(() => {
-    if (selectedCategory === "Todos") {
-      return allMovies;
-    }
-    return allMovies.filter((movie) => movie.category === selectedCategory);
-  }, [selectedCategory]);
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        const genreId = genreMap[selectedCategory];
+        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc`;
+
+        if (genreId) {
+          url += `&with_genres=${genreId}`;
+        }
+
+        const response = await axios.get(url);
+        setMovies(response.data.results);
+      } catch (error) {
+        console.error("Erro ao buscar filmes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, [selectedCategory]); // Atualiza os filmes sempre que a categoria muda
+
+  if (loading) {
+    return (
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#F5A623" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -225,19 +113,24 @@ export default function TelaFilmes() {
       </View>
 
       <FlatList
-        data={filteredMovies}
+        data={movies}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         style={styles.gridContainer}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.posterContainer}
-            // Chamando a navegação para a nova tela, passando o ID do filme
             onPress={() =>
               navigation.navigate("DetalhesFilme", { filmeId: item.id })
             }
           >
-            <Image source={{ uri: item.image }} style={styles.posterImage} />
+            <Image
+              source={{
+                uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+              }}
+              style={styles.posterImage}
+            />
+            <Text style={styles.posterTitle}>{item.title}</Text>
           </TouchableOpacity>
         )}
       />
@@ -246,10 +139,7 @@ export default function TelaFilmes() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
+  safeArea: { flex: 1, backgroundColor: "#121212" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -258,14 +148,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
   },
-  logo: {
-    width: 35,
-    height: 35,
-  },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  logo: { width: 35, height: 35 },
+  headerIcons: { flexDirection: "row", alignItems: "center" },
   pageTitle: {
     color: "white",
     fontSize: 24,
@@ -311,5 +195,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 10,
+  },
+  posterTitle: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: "center",
   },
 });
