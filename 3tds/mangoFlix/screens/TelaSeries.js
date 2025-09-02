@@ -1,5 +1,3 @@
-// src/screens/TelaSeries.js
-
 import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
@@ -18,7 +16,6 @@ import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-// Mapeamento dos gêneros da sua tela para os IDs da API do TMDb
 const genreMap = {
   Todos: null,
   Drama: 18,
@@ -54,7 +51,6 @@ export default function TelaSeries() {
         setLoading(false);
       }
     };
-
     fetchSeries();
   }, [selectedCategory]);
 

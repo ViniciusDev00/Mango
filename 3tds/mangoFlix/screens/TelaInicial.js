@@ -17,7 +17,6 @@ import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-// --- NOVOS DADOS DINÂMICOS ---
 const fetchTrending = async () => {
   const response = await axios.get(
     `https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_API_KEY}&language=pt-BR`
@@ -39,10 +38,9 @@ const fetchTopRatedSeries = async () => {
   return response.data.results;
 };
 
-// Componente para o pôster de filmes
 const PosterItem = ({ item, navigation }) => (
   <TouchableOpacity
-    style={styles.posterContainer}
+    style={styles.posterItemContainer}
     onPress={() => {
       if (item.media_type === "movie" || !item.media_type) {
         navigation.navigate("DetalhesFilme", { filmeId: item.id });
@@ -73,6 +71,7 @@ export default function TelaInicial() {
   const [recommended, setRecommended] = useState([]);
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -88,19 +87,30 @@ export default function TelaInicial() {
           fetchTopRatedSeries(),
         ]);
 
-        setBanners(trendingData.slice(0, 4));
-        setReleases(popularMovies.slice(0, 10));
-        setRecommended(topRatedSeries.slice(0, 10));
-        setTrending(trendingData.slice(0, 10));
+        setBanners(trendingData.slice(0, 5));
+        setReleases(popularMovies);
+        setRecommended(topRatedSeries);
+        setTrending(trendingData);
       } catch (error) {
         console.error("Erro ao carregar dados da página inicial:", error);
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, []);
+
+  const handleNextBanner = () => {
+    setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
+  };
+
+  const handlePrevBanner = () => {
+    setCurrentBannerIndex((prevIndex) =>
+      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
+    );
+  };
+
+  const currentBanner = banners[currentBannerIndex];
 
   if (loading) {
     return (
@@ -109,8 +119,6 @@ export default function TelaInicial() {
       </View>
     );
   }
-
-  const currentBanner = banners[0];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -136,27 +144,42 @@ export default function TelaInicial() {
             <Text style={styles.sectionTitleBanner}>Em alta</Text>
             <TouchableOpacity
               onPress={() => {
-                if (currentBanner.media_type === 'movie') {
-                  navigation.navigate('DetalhesFilme', { filmeId: currentBanner.id });
-                } else if (currentBanner.media_type === 'tv') {
-                  navigation.navigate('DetalhesSerie', { serieId: currentBanner.id });
-                }
+                const navParams = currentBanner.media_type === "movie" 
+                  ? { screen: "DetalhesFilme", params: { filmeId: currentBanner.id } }
+                  : { screen: "DetalhesSerie", params: { serieId: currentBanner.id } };
+                navigation.navigate(navParams.screen, navParams.params);
               }}
             >
               <ImageBackground
-                source={{ uri: `https://image.tmdb.org/t/p/w500${currentBanner.poster_path}` }}
+                source={{
+                  uri: `https://image.tmdb.org/t/p/w500${currentBanner.poster_path}`,
+                }}
                 style={styles.bannerImage}
                 imageStyle={{ borderRadius: 12 }}
               >
                 <View style={styles.bannerOverlay}>
-                  <Text style={styles.bannerTitle}>{currentBanner.title || currentBanner.name}</Text>
+                  <Text style={styles.bannerTitle}>
+                    {currentBanner.title || currentBanner.name}
+                  </Text>
                   <Text style={styles.bannerSubtitle}>
-                    {currentBanner.media_type === 'movie' ? 'Filme' : 'Série'} em destaque
+                    {currentBanner.media_type === "movie" ? "Filme" : "Série"} em destaque
                   </Text>
                   <TouchableOpacity style={styles.watchButton}>
                     <Text style={styles.watchButtonText}>Ver Detalhes</Text>
                   </TouchableOpacity>
                 </View>
+                <TouchableOpacity
+                  style={[styles.arrowButton, { left: 10 }]}
+                  onPress={handlePrevBanner}
+                >
+                  <Ionicons name="chevron-back" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.arrowButton, { right: 10 }]}
+                  onPress={handleNextBanner}
+                >
+                  <Ionicons name="chevron-forward" size={24} color="white" />
+                </TouchableOpacity>
               </ImageBackground>
             </TouchableOpacity>
           </View>
@@ -166,7 +189,9 @@ export default function TelaInicial() {
           <SectionHeader title="Lançamentos" />
           <FlatList
             data={releases}
-            renderItem={({ item }) => <PosterItem item={item} navigation={navigation} />}
+            renderItem={({ item }) => (
+              <PosterItem item={{ ...item, media_type: 'movie' }} navigation={navigation} />
+            )}
             keyExtractor={(item) => item.id.toString()}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -178,7 +203,9 @@ export default function TelaInicial() {
           <SectionHeader title="Recomendado para Você" />
           <FlatList
             data={recommended}
-            renderItem={({ item }) => <PosterItem item={item} navigation={navigation} />}
+            renderItem={({ item }) => (
+              <PosterItem item={{ ...item, media_type: 'tv' }} navigation={navigation} />
+            )}
             keyExtractor={(item) => item.id.toString()}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -227,6 +254,14 @@ const styles = StyleSheet.create({
     height: 200,
     justifyContent: "flex-end",
   },
+  arrowButton: {
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateY: -12 }], // Centraliza verticalmente
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 8,
+    borderRadius: 50,
+  },
   bannerOverlay: {
     backgroundColor: "rgba(0,0,0,0.4)",
     padding: 12,
@@ -259,13 +294,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: { color: "white", fontSize: 20, fontWeight: "bold" },
-  posterContainer: { marginRight: 10 },
-  posterImage: { width: 120, height: 180, borderRadius: 8 },
+  posterItemContainer: {
+    marginRight: 10,
+    width: 120, // Define uma largura fixa
+  },
+  posterImage: { width: "100%", height: 180, borderRadius: 8 },
   posterTitle: {
     color: "white",
     fontSize: 12,
     marginTop: 5,
     textAlign: "center",
-    maxWidth: 120,
   },
 });

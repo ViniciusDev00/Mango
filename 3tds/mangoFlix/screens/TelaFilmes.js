@@ -1,5 +1,3 @@
-// src/screens/TelaFilmes.js
-
 import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
@@ -18,9 +16,8 @@ import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-// Mapeamento dos gêneros da sua tela para os IDs da API do TMDb
 const genreMap = {
-  Todos: null, // 'null' para não filtrar por gênero
+  Todos: null,
   Ação: 28,
   Ficção: 878,
   Animação: 16,
@@ -55,9 +52,8 @@ export default function TelaFilmes() {
         setLoading(false);
       }
     };
-
     fetchMovies();
-  }, [selectedCategory]); // Atualiza os filmes sempre que a categoria muda
+  }, [selectedCategory]);
 
   if (loading) {
     return (

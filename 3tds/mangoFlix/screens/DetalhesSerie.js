@@ -10,38 +10,46 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from '@expo/vector-icons'; // Importe os ícones
 import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-export default function DetalhesSerie({ route }) {
+export default function DetalhesSerie({ route, navigation }) {
   const { serieId } = route.params;
   const [serie, setSerie] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [trailerUrl, setTrailerUrl] = useState(null);
 
   useEffect(() => {
     const fetchDetalhesSerie = async () => {
       try {
         setLoading(true);
-        // Chama a API para detalhes da série
-        const respostaSerie = await axios.get(
-          `https://api.themoviedb.org/3/tv/${serieId}?api_key=${TMDB_API_KEY}&language=pt-BR`
-        );
-        // Chama a API para vídeos da série
-        const respostaVideos = await axios.get(
-          `https://api.themoviedb.org/3/tv/${serieId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
-        );
+        const [respostaSerie, respostaVideos] = await Promise.all([
+          axios.get(
+            `https://api.themoviedb.org/3/tv/${serieId}?api_key=${TMDB_API_KEY}&language=pt-BR`
+          ),
+          axios.get(
+            `https://api.themoviedb.org/3/tv/${serieId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
+          ),
+        ]);
+
+        setSerie(respostaSerie.data);
 
         const trailer = respostaVideos.data.results.find(
           (video) => video.type === "Trailer" && video.site === "YouTube"
         );
+        const teaser = respostaVideos.data.results.find(
+          (video) => video.type === "Teaser" && video.site === "YouTube"
+        );
 
-        setSerie({
-          ...respostaSerie.data,
-          trailerUrl: trailer
-            ? `https://www.youtube.com/watch?v=${trailer.key}`
-            : null,
-        });
+        if (trailer) {
+          setTrailerUrl(`https://www.youtube.com/watch?v=${trailer.key}`);
+        } else if (teaser) {
+          setTrailerUrl(`https://www.youtube.com/watch?v=${teaser.key}`);
+        } else {
+          setTrailerUrl(null);
+        }
       } catch (erro) {
         console.error("Erro ao buscar detalhes da série:", erro);
       } finally {
@@ -91,6 +99,15 @@ export default function DetalhesSerie({ route }) {
           }}
           style={styles.poster}
         />
+        
+        {/* Botão de voltar */}
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={30} color="white" />
+        </TouchableOpacity>
+
         <View style={styles.infoContainer}>
           <Text style={styles.titulo}>{serie.name}</Text>
           <Text style={styles.sinopse}>
@@ -104,10 +121,10 @@ export default function DetalhesSerie({ route }) {
             10
           </Text>
 
-          {serie.trailerUrl && (
+          {trailerUrl && (
             <TouchableOpacity
               style={styles.botaoAssistir}
-              onPress={() => Linking.openURL(serie.trailerUrl)}
+              onPress={() => Linking.openURL(trailerUrl)}
             >
               <Text style={styles.textoBotao}>Assistir Trailer</Text>
             </TouchableOpacity>
@@ -130,6 +147,15 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 500,
     resizeMode: "cover",
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 5,
   },
   infoContainer: {
     padding: 15,
