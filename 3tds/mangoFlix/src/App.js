@@ -4,15 +4,33 @@ import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'; // Importe os ícones
+import { createStackNavigator } from '@react-navigation/stack'; // Importe o Stack Navigator
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Importe suas telas
 import TelaInicial from '../screens/TelaInicial';
 import TelaFilmes from '../screens/TelaFilmes';
 import TelaSeries from '../screens/TelaSeries';
 import TelaFavoritos from '../screens/TelaFavoritos';
+import DetalhesFilme from '../screens/DetalhesFilme'; // Importe a nova tela
 
 const Tab = createBottomTabNavigator();
+const FilmesStack = createStackNavigator(); // Crie um Stack Navigator para os Filmes
+
+// Componente para a navegação da aba "Filmes"
+function FilmesStackNavigator() {
+  return (
+    <FilmesStack.Navigator
+      initialRouteName="FilmesTab"
+      screenOptions={{ headerShown: false }} // Esconde o cabeçalho padrão da stack
+    >
+      {/* A primeira tela da stack é a sua TelaFilmes */}
+      <FilmesStack.Screen name="FilmesTab" component={TelaFilmes} />
+      {/* A segunda tela é a de detalhes, que será exibida por cima */}
+      <FilmesStack.Screen name="DetalhesFilme" component={DetalhesFilme} />
+    </FilmesStack.Navigator>
+  );
+}
 
 export default function App() {
   return (
@@ -21,20 +39,19 @@ export default function App() {
       <Tab.Navigator
         initialRouteName="Início"
         screenOptions={({ route }) => ({
-          headerShown: false, // Esconde o cabeçalho branco padrão
+          headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#181818', // Cor de fundo da barra
-            borderTopWidth: 0, // Remove a linha de cima
-            height: 90, // Altura da barra
-            paddingBottom: 30, // Espaçamento inferior para o texto
+            backgroundColor: '#181818',
+            borderTopWidth: 0,
+            height: 90,
+            paddingBottom: 30,
           },
-          tabBarActiveTintColor: 'white', // Cor do ícone e texto ativos
-          tabBarInactiveTintColor: 'gray', // Cor do ícone e texto inativos
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: 'gray',
 
-          // Função que define qual ícone usar para cada aba
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-            size = 28; // Define um tamanho padrão maior para os ícones
+            size = 28;
 
             if (route.name === 'Início') {
               iconName = focused ? 'home' : 'home-outline';
@@ -53,7 +70,8 @@ export default function App() {
         })}
       >
         <Tab.Screen name="Início" component={TelaInicial} />
-        <Tab.Screen name="Filmes" component={TelaFilmes} />
+        {/* Usando o novo Stack Navigator para a aba "Filmes" */}
+        <Tab.Screen name="Filmes" component={FilmesStackNavigator} />
         <Tab.Screen name="Séries" component={TelaSeries} />
         <Tab.Screen name="Favoritos" component={TelaFavoritos} />
       </Tab.Navigator>

@@ -12,51 +12,45 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-// --- SEUS LINKS DE IMAGEM QUE FUNCIONAM ---
-// Vou repetir estes links em toda a lista de filmes.
-const workingImages = [
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s',
-  'https://i.pinimg.com/236x/0f/00/4f/0f004fb72d1365665f8fffa43e821a0b.jpg',
-  'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg',
-];
-
-// --- DADOS MOCK (com a mesma estrutura de antes, mas usando seus links) ---
+// --- ATUALIZADO: Usando IDs de filmes reais do TMDb para que a navegação funcione ---
 const allMovies = [
   // Ação
-  { id: 'a1', image: workingImages[0], category: 'Ação' },
-  { id: 'a2', image: workingImages[1], category: 'Ação' },
-  { id: 'a3', image: workingImages[2], category: 'Ação' },
-  { id: 'a4', image: workingImages[0], category: 'Ação' },
-  { id: 'a5', image: workingImages[1], category: 'Ação' },
-  { id: 'a6', image: workingImages[2], category: 'Ação' },
+  { id: 299534, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Ação' }, 
+  { id: 496243, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Ação' }, 
+  { id: 1011985, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Ação' }, 
+  { id: 507086, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Ação' }, 
+  { id: 550, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Ação' }, 
+  { id: 24428, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Ação' }, 
   // Ficção
-  { id: 's1', image: workingImages[0], category: 'Ficção' },
-  { id: 's2', image: workingImages[1], category: 'Ficção' },
-  { id: 's3', image: workingImages[2], category: 'Ficção' },
-  { id: 's4', image: workingImages[0], category: 'Ficção' },
-  { id: 's5', image: workingImages[1], category: 'Ficção' },
-  { id: 's6', image: workingImages[2], category: 'Ficção' },
+  { id: 634649, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Ficção' }, 
+  { id: 872585, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Ficção' }, 
+  { id: 157336, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Ficção' }, 
+  { id: 1726, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Ficção' }, 
+  { id: 76600, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Ficção' }, 
+  { id: 19995, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Ficção' }, 
   // Animação
-  { id: 'n1', image: workingImages[0], category: 'Animação' },
-  { id: 'n2', image: workingImages[1], category: 'Animação' },
-  { id: 'n3', image: workingImages[2], category: 'Animação' },
-  { id: 'n4', image: workingImages[0], category: 'Animação' },
-  { id: 'n5', image: workingImages[1], category: 'Animação' },
-  { id: 'n6', image: workingImages[2], category: 'Animação' },
+  { id: 1011985, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Animação' }, 
+  { id: 315162, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Animação' }, 
+  { id: 496243, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Animação' }, 
+  { id: 359410, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Animação' }, 
+  { id: 508947, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Animação' }, 
+  { id: 512200, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Animação' }, 
   // Terror
-  { id: 't1', image: workingImages[0], category: 'Terror' },
-  { id: 't2', image: workingImages[1], category: 'Terror' },
-  { id: 't3', image: workingImages[2], category: 'Terror' },
-  { id: 't4', image: workingImages[0], category: 'Terror' },
+  { id: 585244, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Terror' }, 
+  { id: 346364, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Terror' }, 
+  { id: 580489, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Terror' }, 
+  { id: 5752, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s', category: 'Terror' }, 
   // Fantasia
-  { id: 'f1', image: workingImages[0], category: 'Fantasia' },
-  { id: 'f2', image: workingImages[1], category: 'Fantasia' },
+  { id: 438631, image: 'https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg', category: 'Fantasia' }, 
+  { id: 122906, image: 'https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg', category: 'Fantasia' }, 
 ];
 
 const categories = ['Todos', 'Ação', 'Ficção', 'Animação', 'Terror', 'Fantasia'];
 
 export default function TelaFilmes() {
+  const navigation = useNavigation(); // Hook de navegação
   const [selectedCategory, setSelectedCategory] = useState('Todos');
 
   const filteredMovies = useMemo(() => {
@@ -68,7 +62,6 @@ export default function TelaFilmes() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* CABEÇALHO */}
       <View style={styles.header}>
         <Image
           source={require('../img/manga-removebg-preview.png')}
@@ -82,7 +75,6 @@ export default function TelaFilmes() {
 
       <Text style={styles.pageTitle}>Filmes</Text>
 
-      {/* FILTRO DE CATEGORIAS HORIZONTAL */}
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {categories.map((category) => (
@@ -105,14 +97,17 @@ export default function TelaFilmes() {
         </ScrollView>
       </View>
 
-      {/* GRADE DE FILMES FILTRADA */}
       <FlatList
         data={filteredMovies}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         style={styles.gridContainer}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.posterContainer}>
+          <TouchableOpacity 
+            style={styles.posterContainer}
+            // Chamando a navegação para a nova tela, passando o ID do filme
+            onPress={() => navigation.navigate('DetalhesFilme', { filmeId: item.id })}
+          >
             <Image source={{ uri: item.image }} style={styles.posterImage} />
           </TouchableOpacity>
         )}
@@ -121,72 +116,71 @@ export default function TelaFilmes() {
   );
 }
 
-// --- ESTILOS ---
 const styles = StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: '#121212',
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingTop: 10,
-      paddingBottom: 10,
-    },
-    logo: {
-      width: 35,
-      height: 35,
-    },
-    headerIcons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    pageTitle: {
-      color: 'white',
-      fontSize: 24,
-      fontWeight: 'bold',
-      paddingHorizontal: 16,
-      marginTop: 10,
-    },
-    filterContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 15,
-    },
-    categoryButton: {
-      marginRight: 12,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      backgroundColor: '#252525',
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: 'transparent',
-    },
-    categoryButtonActive: {
-      backgroundColor: '#F5A623',
-      borderColor: '#F5A623',
-    },
-    categoryButtonText: {
-      color: '#FFFFFF',
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    categoryButtonTextActive: {
-      color: '#121212',
-    },
-    gridContainer: {
-      flex: 1,
-      paddingHorizontal: 5,
-    },
-    posterContainer: {
-      flex: 1,
-      margin: 5,
-      aspectRatio: 2 / 3,
-    },
-    posterImage: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 10,
-    },
-  });
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  logo: {
+    width: 35,
+    height: 35,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pageTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    paddingHorizontal: 16,
+    marginTop: 10,
+  },
+  filterContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+  },
+  categoryButton: {
+    marginRight: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#252525',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  categoryButtonActive: {
+    backgroundColor: '#F5A623',
+    borderColor: '#F5A623',
+  },
+  categoryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  categoryButtonTextActive: {
+    color: '#121212',
+  },
+  gridContainer: {
+    flex: 1,
+    paddingHorizontal: 5,
+  },
+  posterContainer: {
+    flex: 1,
+    margin: 5,
+    aspectRatio: 2 / 3,
+  },
+  posterImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+});
