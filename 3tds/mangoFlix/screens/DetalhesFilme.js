@@ -8,9 +8,10 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from '@expo/vector-icons'; // Importe os ícones
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
@@ -18,23 +19,35 @@ const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 export default function DetalhesFilme({ route, navigation }) {
   const { filmeId } = route.params;
   const [filme, setFilme] = useState(null);
+  const [cast, setCast] = useState([]);
+  const [similarMovies, setSimilarMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trailerUrl, setTrailerUrl] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false); // Novo estado para favoritos
 
   useEffect(() => {
     const fetchDetalhesFilme = async () => {
       try {
         setLoading(true);
-        const [respostaFilme, respostaVideos] = await Promise.all([
-          axios.get(
-            `https://api.themoviedb.org/3/movie/${filmeId}?api_key=${TMDB_API_KEY}&language=pt-BR`
-          ),
-          axios.get(
-            `https://api.themoviedb.org/3/movie/${filmeId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
-          ),
-        ]);
+        const [respostaFilme, respostaVideos, respostaCast, respostaSimilar] =
+          await Promise.all([
+            axios.get(
+              `https://api.themoviedb.org/3/movie/${filmeId}?api_key=${TMDB_API_KEY}&language=pt-BR`
+            ),
+            axios.get(
+              `https://api.themoviedb.org/3/movie/${filmeId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
+            ),
+            axios.get(
+              `https://api.themoviedb.org/3/movie/${filmeId}/credits?api_key=${TMDB_API_KEY}`
+            ),
+            axios.get(
+              `https://api.themoviedb.org/3/movie/${filmeId}/similar?api_key=${TMDB_API_KEY}&language=pt-BR`
+            ),
+          ]);
 
         setFilme(respostaFilme.data);
+        setCast(respostaCast.data.cast.slice(0, 5)); // Pega os 5 primeiros atores
+        setSimilarMovies(respostaSimilar.data.results.slice(0, 10)); // Pega 10 filmes similares
 
         const trailer = respostaVideos.data.results.find(
           (video) => video.type === "Trailer" && video.site === "YouTube"
@@ -42,7 +55,7 @@ export default function DetalhesFilme({ route, navigation }) {
         const teaser = respostaVideos.data.results.find(
           (video) => video.type === "Teaser" && video.site === "YouTube"
         );
-        
+
         if (trailer) {
           setTrailerUrl(`https://www.youtube.com/watch?v=${trailer.key}`);
         } else if (teaser) {
@@ -99,10 +112,9 @@ export default function DetalhesFilme({ route, navigation }) {
           }}
           style={styles.poster}
         />
-        
-        {/* Botão de voltar */}
-        <TouchableOpacity 
-          style={styles.backButton} 
+
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="chevron-back" size={30} color="white" />
@@ -110,24 +122,102 @@ export default function DetalhesFilme({ route, navigation }) {
 
         <View style={styles.infoContainer}>
           <Text style={styles.titulo}>{filme.title}</Text>
-          <Text style={styles.sinopse}>
-            {filme.overview || "Sinopse não disponível."}
+          <Text style={styles.genero}>
+            {filme.genres.map((g) => g.name).join(", ")}
           </Text>
+          <Text style={styles.textoDetalhe}>Duração: {filme.runtime} min</Text>
           <Text style={styles.textoDetalhe}>
-            Data de Lançamento: {filme.release_date || "N/A"}
+            Data de Lançamento: {filme.release_date}
           </Text>
           <Text style={styles.textoDetalhe}>
             Nota: {filme.vote_average ? filme.vote_average.toFixed(1) : "N/A"} /
             10
           </Text>
+          <Text style={styles.sinopse}>
+            {filme.overview || "Sinopse não disponível."}
+          </Text>
 
-          {trailerUrl && (
+          {/* Seção de Elenco */}
+          <Text style={styles.subtitulo}>Elenco Principal</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.castList}
+          >
+            {cast.map((actor, index) => (
+              <View key={index} style={styles.actorContainer}>
+                {actor.profile_path ? (
+                  <Image
+                    source={{
+                      uri: `https://image.tmdb.org/t/p/w500${actor.profile_path}`,
+                    }}
+                    style={styles.actorImage}
+                  />
+                ) : (
+                  <View style={styles.actorPlaceholder}>
+                    <Ionicons name="person" size={40} color="gray" />
+                  </View>
+                )}
+                <Text style={styles.actorName}>{actor.name}</Text>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Botões de Ação */}
+          <View style={styles.actionButtonsContainer}>
+            {trailerUrl && (
+              <TouchableOpacity
+                style={styles.botaoAssistir}
+                onPress={() => Linking.openURL(trailerUrl)}
+              >
+                <Text style={styles.textoBotao}>Assistir Trailer</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
-              style={styles.botaoAssistir}
-              onPress={() => Linking.openURL(trailerUrl)}
+              style={[
+                styles.botaoFavorito,
+                isFavorite && styles.botaoFavoritoAtivo,
+              ]}
+              onPress={() => setIsFavorite(!isFavorite)}
             >
-              <Text style={styles.textoBotao}>Assistir Trailer</Text>
+              <Ionicons
+                name={isFavorite ? "star" : "star-outline"}
+                size={24}
+                color={isFavorite ? "#fff" : "white"}
+              />
+              <Text style={styles.textoBotaoFavorito}>
+                {isFavorite ? "Favoritado" : "Adicionar aos Favoritos"}
+              </Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Seção de Filmes Similares */}
+          {similarMovies.length > 0 && (
+            <View style={styles.similarSection}>
+              <Text style={styles.subtitulo}>Filmes Similares</Text>
+              <FlatList
+                data={similarMovies}
+                keyExtractor={(item) => item.id.toString()}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.push("DetalhesFilme", { filmeId: item.id })
+                    }
+                    style={styles.similarPosterContainer}
+                  >
+                    <Image
+                      source={{
+                        uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+                      }}
+                      style={styles.similarPosterImage}
+                    />
+                    <Text style={styles.similarTitle}>{item.title}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
           )}
         </View>
       </ScrollView>
@@ -136,61 +226,94 @@ export default function DetalhesFilme({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  poster: {
-    width: "100%",
-    height: 500,
-    resizeMode: "cover",
-  },
+  safeArea: { flex: 1, backgroundColor: "#121212" },
+  scrollView: { flex: 1 },
+  poster: { width: "100%", height: 500, resizeMode: "cover" },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     left: 10,
-    zIndex: 1, // Garante que o botão fique acima da imagem
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 20,
     padding: 5,
   },
-  infoContainer: {
-    padding: 15,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 10,
-  },
-  sinopse: {
+  infoContainer: { padding: 15 },
+  titulo: { fontSize: 28, fontWeight: "bold", color: "#fff", marginBottom: 5 },
+  genero: {
     fontSize: 16,
     color: "#ccc",
-    lineHeight: 24,
-    marginBottom: 15,
+    fontStyle: "italic",
+    marginBottom: 10,
   },
-  textoDetalhe: {
-    fontSize: 14,
-    color: "#aaa",
+  textoDetalhe: { fontSize: 14, color: "#aaa", marginBottom: 5 },
+  sinopse: { fontSize: 16, color: "#ccc", lineHeight: 24, marginBottom: 15 },
+  subtitulo: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  castList: { marginBottom: 15 },
+  actorContainer: { alignItems: "center", marginRight: 15 },
+  actorImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 5 },
+  actorPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 5,
+  },
+  actorName: {
+    color: "white",
+    fontSize: 12,
+    textAlign: "center",
+    maxWidth: 80,
+  },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginTop: 20,
   },
   botaoAssistir: {
     backgroundColor: "#e50914",
     padding: 15,
     borderRadius: 5,
-    marginTop: 20,
+    flex: 1,
+    marginRight: 10,
     alignItems: "center",
   },
-  textoBotao: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  container: {
+  textoBotao: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  botaoFavorito: {
+    backgroundColor: "#333",
+    padding: 15,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
-    backgroundColor: "#121212",
+    marginLeft: 10,
+    justifyContent: "center",
   },
+  botaoFavoritoAtivo: { backgroundColor: "#F5A623" },
+  textoBotaoFavorito: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 5,
+  },
+  similarSection: { marginTop: 20 },
+  similarPosterContainer: { marginRight: 10 },
+  similarPosterImage: { width: 100, height: 150, borderRadius: 8 },
+  similarTitle: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: "center",
+    maxWidth: 100,
+  },
+  container: { flex: 1, backgroundColor: "#121212" },
 });
