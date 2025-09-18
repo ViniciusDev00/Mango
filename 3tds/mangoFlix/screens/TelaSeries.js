@@ -22,8 +22,8 @@ const genreMap = {
   Fantasia: 14,
   Comédia: 35,
   Crime: 80,
-  Mistério: 9648, // Adicionado
-  Documentário: 99, // Adicionado
+  Mistério: 9648,
+  Documentário: 99,
 };
 
 const categories = Object.keys(genreMap);
@@ -173,8 +173,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
   },
   logo: { width: 35, height: 35 },
   headerIcons: { flexDirection: "row", alignItems: "center" },

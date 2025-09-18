@@ -23,7 +23,7 @@ const genreMap = {
   Animação: 16,
   Terror: 27,
   Fantasia: 14,
-  Romance: 10749, // Adicionado
+  Romance: 10749,
 };
 
 const categories = Object.keys(genreMap);
@@ -85,7 +85,6 @@ export default function TelaFilmes() {
 
   useFocusEffect(
     React.useCallback(() => {
-      // Role para o topo quando a tela é focada (ex: ao clicar na tab novamente)
       if (flatListRef.current) {
         flatListRef.current.scrollToOffset({ offset: 0, animated: true });
       }
@@ -174,8 +173,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
   },
   logo: { width: 35, height: 35 },
   headerIcons: { flexDirection: "row", alignItems: "center" },
