@@ -1,5 +1,4 @@
 // App.js
-
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
@@ -15,13 +14,15 @@ import TelaFavoritos from "../screens/TelaFavoritos";
 import DetalhesFilme from "../screens/DetalhesFilme";
 import DetalhesSerie from "../screens/DetalhesSerie";
 
+// Importe o provedor de contexto
+import { FavoritesProvider } from "./contexts/FavoritesContext";
+
 const Tab = createBottomTabNavigator();
 const FilmesStack = createStackNavigator();
 const SeriesStack = createStackNavigator();
 const FavoritosStack = createStackNavigator();
-const InicioStack = createStackNavigator(); // Crie o Stack Navigator para Início
+const InicioStack = createStackNavigator();
 
-// Componente para a navegação da aba "Filmes"
 function FilmesStackNavigator() {
   return (
     <FilmesStack.Navigator screenOptions={{ headerShown: false }}>
@@ -31,7 +32,6 @@ function FilmesStackNavigator() {
   );
 }
 
-// Componente para a navegação da aba "Séries"
 function SeriesStackNavigator() {
   return (
     <SeriesStack.Navigator screenOptions={{ headerShown: false }}>
@@ -41,7 +41,6 @@ function SeriesStackNavigator() {
   );
 }
 
-// Componente para a navegação da aba "Favoritos"
 function FavoritosStackNavigator() {
   return (
     <FavoritosStack.Navigator screenOptions={{ headerShown: false }}>
@@ -52,7 +51,6 @@ function FavoritosStackNavigator() {
   );
 }
 
-// Componente para a navegação da aba "Início"
 function InicioStackNavigator() {
   return (
     <InicioStack.Navigator screenOptions={{ headerShown: false }}>
@@ -65,57 +63,59 @@ function InicioStackNavigator() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="light" />
-      <Tab.Navigator
-        initialRouteName="Início"
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: "#181818",
-            borderTopWidth: 0,
-            height: 90,
-            paddingBottom: 30,
-          },
-          tabBarActiveTintColor: "white",
-          tabBarInactiveTintColor: "gray",
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-            size = 28;
+    <FavoritesProvider>
+      <NavigationContainer>
+        <StatusBar style="light" />
+        <Tab.Navigator
+          initialRouteName="Início"
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            tabBarStyle: {
+              backgroundColor: "#181818",
+              borderTopWidth: 0,
+              height: 90,
+              paddingBottom: 30,
+            },
+            tabBarActiveTintColor: "white",
+            tabBarInactiveTintColor: "gray",
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
+              size = 28;
 
-            if (route.name === "Início") {
-              iconName = focused ? "home" : "home-outline";
-              return <Ionicons name={iconName} size={size} color={color} />;
-            } else if (route.name === "Filmes") {
-              iconName = focused ? "movie-play" : "movie-play-outline";
-              return (
-                <MaterialCommunityIcons
-                  name={iconName}
-                  size={size}
-                  color={color}
-                />
-              );
-            } else if (route.name === "Séries") {
-              iconName = focused ? "television-play" : "television";
-              return (
-                <MaterialCommunityIcons
-                  name={iconName}
-                  size={size}
-                  color={color}
-                />
-              );
-            } else if (route.name === "Favoritos") {
-              iconName = focused ? "star" : "star-outline";
-              return <Ionicons name={iconName} size={size} color={color} />;
-            }
-          },
-        })}
-      >
-        <Tab.Screen name="Início" component={InicioStackNavigator} />
-        <Tab.Screen name="Filmes" component={FilmesStackNavigator} />
-        <Tab.Screen name="Séries" component={SeriesStackNavigator} />
-        <Tab.Screen name="Favoritos" component={FavoritosStackNavigator} />
-      </Tab.Navigator>
-    </NavigationContainer>
+              if (route.name === "Início") {
+                iconName = focused ? "home" : "home-outline";
+                return <Ionicons name={iconName} size={size} color={color} />;
+              } else if (route.name === "Filmes") {
+                iconName = focused ? "movie-play" : "movie-play-outline";
+                return (
+                  <MaterialCommunityIcons
+                    name={iconName}
+                    size={size}
+                    color={color}
+                  />
+                );
+              } else if (route.name === "Séries") {
+                iconName = focused ? "television-play" : "television";
+                return (
+                  <MaterialCommunityIcons
+                    name={iconName}
+                    size={size}
+                    color={color}
+                  />
+                );
+              } else if (route.name === "Favoritos") {
+                iconName = focused ? "star" : "star-outline";
+                return <Ionicons name={iconName} size={size} color={color} />;
+              }
+            },
+          })}
+        >
+          <Tab.Screen name="Início" component={InicioStackNavigator} />
+          <Tab.Screen name="Filmes" component={FilmesStackNavigator} />
+          <Tab.Screen name="Séries" component={SeriesStackNavigator} />
+          <Tab.Screen name="Favoritos" component={FavoritosStackNavigator} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </FavoritesProvider>
   );
 }

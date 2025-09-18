@@ -1,6 +1,5 @@
 // src/screens/TelaFavoritos.js
-
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -9,31 +8,10 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
-// --- ATUALIZADO: Usando IDs reais e um tipo (movie/tv) para a navegação
-const initialFavorites = [
-  {
-    id: 299534,
-    type: "movie",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEZb38aW5wedCsi5abVr7uJczSn7m4bfBpNQ&s",
-  },
-  {
-    id: 1399,
-    type: "tv",
-    image:
-      "https://i.pinimg.com/236x/0f/004f/0f004fb72d1365665f8fffa43e821a0b.jpg",
-  },
-  {
-    id: 496243,
-    type: "movie",
-    image: "https://files.tecnoblog.net/wp-content/uploads/2022/04/batman.jpg",
-  },
-];
+import { FavoritesContext } from "../src/contexts/FavoritesContext"; // <-- Caminho corrigido
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
@@ -47,7 +25,7 @@ const EmptyListMessage = () => (
 
 export default function TelaFavoritos() {
   const navigation = useNavigation();
-  const [favoritos, setFavoritos] = useState(initialFavorites);
+  const { favorites } = useContext(FavoritesContext);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -70,15 +48,14 @@ export default function TelaFavoritos() {
       <Text style={styles.pageTitle}>Favoritos</Text>
 
       <FlatList
-        data={favoritos}
-        keyExtractor={(item) => item.id.toString()}
+        data={favorites}
+        keyExtractor={(item) => `${item.type}-${item.id}`} // Chave única
         numColumns={3}
         style={styles.gridContainer}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.posterContainer}
             onPress={() => {
-              // Navega para a tela de detalhes apropriada (filme ou série)
               if (item.type === "movie") {
                 navigation.navigate("DetalhesFilme", { filmeId: item.id });
               } else if (item.type === "tv") {
@@ -87,6 +64,7 @@ export default function TelaFavoritos() {
             }}
           >
             <Image source={{ uri: item.image }} style={styles.posterImage} />
+            <Text style={styles.posterTitle}>{item.title}</Text>
           </TouchableOpacity>
         )}
         ListEmptyComponent={EmptyListMessage}
@@ -95,9 +73,11 @@ export default function TelaFavoritos() {
   );
 }
 
-// Os estilos permanecem os mesmos
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#121212" },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#121212",
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -106,36 +86,59 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
   },
-  logo: { width: 35, height: 35 },
-  headerIcons: { flexDirection: "row", alignItems: "center" },
+  logo: {
+    width: 35,
+    height: 35,
+  },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   pageTitle: {
     color: "white",
     fontSize: 24,
     fontWeight: "bold",
     paddingHorizontal: 16,
     marginTop: 10,
-    marginBottom: 15,
   },
-  gridContainer: { flex: 1, paddingHorizontal: 5 },
-  posterContainer: { flex: 1, margin: 5, aspectRatio: 2 / 3 },
-  posterImage: { width: "100%", height: "100%", borderRadius: 10 },
+  gridContainer: {
+    flex: 1,
+    paddingHorizontal: 5,
+  },
+  posterContainer: {
+    flex: 1,
+    margin: 5,
+    aspectRatio: 2 / 3,
+  },
+  posterImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  posterTitle: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: "center",
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: Dimensions.get("window").height / 5,
+    marginTop: 50,
+    paddingHorizontal: 20,
   },
   emptyText: {
-    color: "white",
+    color: "gray",
     fontSize: 18,
     fontWeight: "bold",
     marginTop: 20,
+    textAlign: "center",
   },
   emptySubText: {
     color: "gray",
     fontSize: 14,
     textAlign: "center",
-    marginTop: 10,
-    paddingHorizontal: 40,
+    marginTop: 5,
   },
 });

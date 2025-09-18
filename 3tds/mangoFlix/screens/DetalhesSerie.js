@@ -1,104 +1,103 @@
-import React, { useState, useEffect } from "react";
+// src/screens/DetalhesSerie.js
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  Image,
   StyleSheet,
-  ScrollView,
+  Image,
   TouchableOpacity,
-  Linking,
+  SafeAreaView,
+  ScrollView,
   ActivityIndicator,
+  Dimensions,
   FlatList,
+  Linking,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import { FavoritesContext } from "../src/contexts/FavoritesContext"; // <-- Caminho corrigido
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
-export default function DetalhesSerie({ route, navigation }) {
+export default function DetalhesSerie({ route }) {
+  const navigation = useNavigation();
   const { serieId } = route.params;
   const [serie, setSerie] = useState(null);
   const [cast, setCast] = useState([]);
   const [similarSeries, setSimilarSeries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trailerUrl, setTrailerUrl] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false); // Novo estado para favoritos
+
+  const { addFavorite, removeFavorite, isFavorite } = useContext(FavoritesContext);
+  const isCurrentlyFavorite = serie ? isFavorite(serie.id, "tv") : false;
 
   useEffect(() => {
-    const fetchDetalhesSerie = async () => {
+    const fetchSeriesDetails = async () => {
       try {
         setLoading(true);
-        const [respostaSerie, respostaVideos, respostaCast, respostaSimilar] =
-          await Promise.all([
-            axios.get(
-              `https://api.themoviedb.org/3/tv/${serieId}?api_key=${TMDB_API_KEY}&language=pt-BR`
-            ),
-            axios.get(
-              `https://api.themoviedb.org/3/tv/${serieId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
-            ),
-            axios.get(
-              `https://api.themoviedb.org/3/tv/${serieId}/credits?api_key=${TMDB_API_KEY}`
-            ),
-            axios.get(
-              `https://api.themoviedb.org/3/tv/${serieId}/similar?api_key=${TMDB_API_KEY}&language=pt-BR`
-            ),
-          ]);
+        const seriesDetailsResponse = await axios.get(
+          `https://api.themoviedb.org/3/tv/${serieId}?api_key=${TMDB_API_KEY}&language=pt-BR`
+        );
+        setSerie(seriesDetailsResponse.data);
 
-        setSerie(respostaSerie.data);
-        setCast(respostaCast.data.cast.slice(0, 5));
-        setSimilarSeries(respostaSimilar.data.results.slice(0, 10));
+        const seriesCreditsResponse = await axios.get(
+          `https://api.themoviedb.org/3/tv/${serieId}/credits?api_key=${TMDB_API_KEY}&language=pt-BR`
+        );
+        setCast(seriesCreditsResponse.data.cast.slice(0, 10));
 
-        const trailer = respostaVideos.data.results.find(
+        const similarSeriesResponse = await axios.get(
+          `https://api.themoviedb.org/3/tv/${serieId}/similar?api_key=${TMDB_API_KEY}&language=pt-BR`
+        );
+        setSimilarSeries(similarSeriesResponse.data.results.slice(0, 10));
+
+        const trailerResponse = await axios.get(
+          `https://api.themoviedb.org/3/tv/${serieId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
+        );
+        const trailer = trailerResponse.data.results.find(
           (video) => video.type === "Trailer" && video.site === "YouTube"
         );
-        const teaser = respostaVideos.data.results.find(
-          (video) => video.type === "Teaser" && video.site === "YouTube"
-        );
-
         if (trailer) {
           setTrailerUrl(`https://www.youtube.com/watch?v=${trailer.key}`);
-        } else if (teaser) {
-          setTrailerUrl(`https://www.youtube.com/watch?v=${teaser.key}`);
-        } else {
-          setTrailerUrl(null);
         }
-      } catch (erro) {
-        console.error("Erro ao buscar detalhes da série:", erro);
+      } catch (error) {
+        console.error("Erro ao buscar detalhes da série:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    if (serieId) {
-      fetchDetalhesSerie();
-    }
+    fetchSeriesDetails();
   }, [serieId]);
 
-  if (loading) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <ActivityIndicator size="large" color="#F5A623" />
-      </View>
-    );
-  }
+  const handleFavoritePress = () => {
+    if (!serie) return;
+    const favoriteItem = {
+      id: serie.id,
+      type: "tv",
+      title: serie.name,
+      image: `https://image.tmdb.org/t/p/w500${serie.poster_path}`,
+    };
+    if (isCurrentlyFavorite) {
+      removeFavorite(favoriteItem);
+    } else {
+      addFavorite(favoriteItem);
+    }
+  };
 
-  if (!serie) {
+  const handleWatchTrailer = () => {
+    if (trailerUrl) {
+      Linking.openURL(trailerUrl);
+    }
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  if (loading || !serie) {
     return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <Text style={styles.textoDetalhe}>
-          Não foi possível carregar os detalhes da série.
-        </Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#F5A623" />
       </View>
     );
   }
@@ -112,210 +111,232 @@ export default function DetalhesSerie({ route, navigation }) {
           }}
           style={styles.poster}
         />
-
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={30} color="white" />
+        
+        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+          <Ionicons name="chevron-back" size={32} color="white" />
         </TouchableOpacity>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.titulo}>{serie.name}</Text>
-          <Text style={styles.genero}>
-            {serie.genres.map((g) => g.name).join(", ")}
-          </Text>
-          <Text style={styles.textoDetalhe}>
-            Episódios: {serie.number_of_episodes}
-          </Text>
-          <Text style={styles.textoDetalhe}>
-            Data de Lançamento: {serie.first_air_date}
-          </Text>
-          <Text style={styles.textoDetalhe}>
-            Nota: {serie.vote_average ? serie.vote_average.toFixed(1) : "N/A"} /
-            10
-          </Text>
-          <Text style={styles.sinopse}>
-            {serie.overview || "Sinopse não disponível."}
-          </Text>
-
-          {/* Seção de Elenco */}
-          <Text style={styles.subtitulo}>Elenco Principal</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.castList}
-          >
-            {cast.map((actor, index) => (
-              <View key={index} style={styles.actorContainer}>
-                {actor.profile_path ? (
-                  <Image
-                    source={{
-                      uri: `https://image.tmdb.org/t/p/w500${actor.profile_path}`,
-                    }}
-                    style={styles.actorImage}
-                  />
-                ) : (
-                  <View style={styles.actorPlaceholder}>
-                    <Ionicons name="person" size={40} color="gray" />
-                  </View>
-                )}
-                <Text style={styles.actorName}>{actor.name}</Text>
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* Botões de Ação */}
-          <View style={styles.actionButtonsContainer}>
-            {trailerUrl && (
-              <TouchableOpacity
-                style={styles.botaoAssistir}
-                onPress={() => Linking.openURL(trailerUrl)}
-              >
-                <Text style={styles.textoBotao}>Assistir Trailer</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[
-                styles.botaoFavorito,
-                isFavorite && styles.botaoFavoritoAtivo,
-              ]}
-              onPress={() => setIsFavorite(!isFavorite)}
-            >
-              <Ionicons
-                name={isFavorite ? "star" : "star-outline"}
-                size={24}
-                color={isFavorite ? "#fff" : "white"}
-              />
-              <Text style={styles.textoBotaoFavorito}>
-                {isFavorite ? "Favoritado" : "Adicionar aos Favoritos"}
-              </Text>
-            </TouchableOpacity>
+        <View style={styles.detailsContainer}>
+          <Text style={styles.title}>{serie.name}</Text>
+          <View style={styles.ratingContainer}>
+            <Ionicons name="star" size={18} color="#FFD700" />
+            <Text style={styles.ratingText}>{serie.vote_average.toFixed(1)}</Text>
           </View>
+          <Text style={styles.infoText}>
+            {serie.first_air_date.split("-")[0]} |{" "}
+            {serie.genres.map((genre) => genre.name).join(", ")}
+          </Text>
 
-          {/* Seção de Séries Similares */}
-          {similarSeries.length > 0 && (
-            <View style={styles.similarSection}>
-              <Text style={styles.subtitulo}>Séries Similares</Text>
-              <FlatList
-                data={similarSeries}
-                keyExtractor={(item) => item.id.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.push("DetalhesSerie", { serieId: item.id })
-                    }
-                    style={styles.similarPosterContainer}
-                  >
-                    <Image
-                      source={{
-                        uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-                      }}
-                      style={styles.similarPosterImage}
-                    />
-                    <Text style={styles.similarTitle}>{item.name}</Text>
-                  </TouchableOpacity>
-                )}
+          {trailerUrl && (
+            <TouchableOpacity style={styles.trailerButton} onPress={handleWatchTrailer}>
+              <Ionicons name="play-circle" size={24} color="white" />
+              <Text style={styles.trailerButtonText}>Assistir Trailer</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.botaoFavorito,
+              isCurrentlyFavorite && styles.botaoFavoritoAtivo,
+            ]}
+            onPress={handleFavoritePress}
+          >
+            <Ionicons
+              name={isCurrentlyFavorite ? "star" : "star-outline"}
+              size={24}
+              color={isCurrentlyFavorite ? "#fff" : "white"}
+            />
+            <Text style={styles.textoBotaoFavorito}>
+              {isCurrentlyFavorite ? "Favoritado" : "Adicionar aos Favoritos"}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.overview}>{serie.overview}</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Elenco</Text>
+        <FlatList
+          data={cast}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.castList}
+          renderItem={({ item }) => (
+            <View style={styles.castItem}>
+              <Image
+                source={{
+                  uri: `https://image.tmdb.org/t/p/w500${item.profile_path}`,
+                }}
+                style={styles.castImage}
               />
+              <Text style={styles.castName}>{item.name}</Text>
             </View>
           )}
-        </View>
+        />
+        <Text style={styles.sectionTitle}>Séries Similares</Text>
+        <FlatList
+          data={similarSeries}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.similarSeriesList}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.similarSerieItem}
+              onPress={() => navigation.navigate("DetalhesSerie", { serieId: item.id })}
+            >
+              <Image
+                source={{
+                  uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+                }}
+                style={styles.similarSerieImage}
+              />
+              <Text style={styles.similarSerieTitle}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#121212" },
-  scrollView: { flex: 1 },
-  poster: { width: "100%", height: 500, resizeMode: "cover" },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#121212",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  poster: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height * 0.6,
+    resizeMode: "cover",
+  },
   backButton: {
-    position: "absolute",
-    top: 10,
+    position: 'absolute',
+    top: 50,
     left: 10,
     zIndex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 20,
     padding: 5,
   },
-  infoContainer: { padding: 15 },
-  titulo: { fontSize: 28, fontWeight: "bold", color: "#fff", marginBottom: 5 },
-  genero: {
-    fontSize: 16,
-    color: "#ccc",
-    fontStyle: "italic",
-    marginBottom: 10,
+  detailsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
-  textoDetalhe: { fontSize: 14, color: "#aaa", marginBottom: 5 },
-  sinopse: { fontSize: 16, color: "#ccc", lineHeight: 24, marginBottom: 15 },
-  subtitulo: {
-    fontSize: 20,
+  title: {
+    color: "white",
+    fontSize: 28,
     fontWeight: "bold",
-    color: "white",
-    marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  castList: { marginBottom: 15 },
-  actorContainer: { alignItems: "center", marginRight: 15 },
-  actorImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 5 },
-  actorPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#333",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  actorName: {
-    color: "white",
-    fontSize: 12,
-    textAlign: "center",
-    maxWidth: 80,
-  },
-  actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  botaoAssistir: {
-    backgroundColor: "#e50914",
-    padding: 15,
-    borderRadius: 5,
-    flex: 1,
-    marginRight: 10,
-    alignItems: "center",
-  },
-  textoBotao: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  botaoFavorito: {
-    backgroundColor: "#333",
-    padding: 15,
-    borderRadius: 5,
+  ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
-    marginLeft: 10,
-    justifyContent: "center",
+    marginBottom: 8,
   },
-  botaoFavoritoAtivo: { backgroundColor: "#F5A623" },
-  textoBotaoFavorito: {
-    color: "white",
+  ratingText: {
+    color: "#FFD700",
     fontSize: 16,
-    fontWeight: "bold",
     marginLeft: 5,
   },
-  similarSection: { marginTop: 20 },
-  similarPosterContainer: { marginRight: 10 },
-  similarPosterImage: { width: 100, height: 150, borderRadius: 8 },
-  similarTitle: {
+  infoText: {
+    color: "gray",
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  overview: {
+    color: "#E0E0E0",
+    fontSize: 16,
+    marginTop: 10,
+    lineHeight: 24,
+  },
+  sectionTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    paddingHorizontal: 16,
+  },
+  castList: {
+    paddingLeft: 16,
+  },
+  castItem: {
+    alignItems: "center",
+    marginRight: 10,
+  },
+  castImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  castName: {
     color: "white",
     fontSize: 12,
     marginTop: 5,
     textAlign: "center",
-    maxWidth: 100,
   },
-  container: { flex: 1, backgroundColor: "#121212" },
+  similarSeriesList: {
+    paddingLeft: 16,
+    marginBottom: 20,
+  },
+  similarSerieItem: {
+    width: 120,
+    marginRight: 10,
+  },
+  similarSerieImage: {
+    width: "100%",
+    height: 180,
+    borderRadius: 8,
+  },
+  similarSerieTitle: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 5,
+    textAlign: "center",
+  },
+  botaoFavorito: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#252525",
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginTop: 15,
+    justifyContent: "center",
+  },
+  botaoFavoritoAtivo: {
+    backgroundColor: "#F5A623",
+  },
+  textoBotaoFavorito: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#121212",
+  },
+  trailerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F5A623",
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginTop: 15,
+  },
+  trailerButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
 });
