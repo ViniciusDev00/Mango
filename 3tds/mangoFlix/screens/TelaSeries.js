@@ -9,7 +9,6 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -23,14 +22,11 @@ const genreMap = {
   Fantasia: 14,
   Comédia: 35,
   Crime: 80,
-  Mistério: 9648,
-  Documentário: 99,
+  Mistério: 9648, // Adicionado
+  Documentário: 99, // Adicionado
 };
 
 const categories = Object.keys(genreMap);
-
-const { width } = Dimensions.get('window');
-const itemWidth = (width - 20) / 3 - 10;
 
 export default function TelaSeries() {
   const navigation = useNavigation();
@@ -221,8 +217,7 @@ const styles = StyleSheet.create({
   posterContainer: {
     flex: 1,
     margin: 5,
-    width: itemWidth,
-    height: itemWidth * (3 / 2),
+    aspectRatio: 2 / 3,
   },
   posterImage: {
     width: "100%",

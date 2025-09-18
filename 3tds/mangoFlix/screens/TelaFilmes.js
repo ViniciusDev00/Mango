@@ -9,7 +9,6 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -24,13 +23,10 @@ const genreMap = {
   Animação: 16,
   Terror: 27,
   Fantasia: 14,
-  Romance: 10749,
+  Romance: 10749, // Adicionado
 };
 
 const categories = Object.keys(genreMap);
-
-const { width } = Dimensions.get('window');
-const itemWidth = (width - 20) / 3 - 10; // 20 para o padding horizontal e 10 para a margem
 
 export default function TelaFilmes() {
   const navigation = useNavigation();
@@ -89,6 +85,7 @@ export default function TelaFilmes() {
 
   useFocusEffect(
     React.useCallback(() => {
+      // Role para o topo quando a tela é focada (ex: ao clicar na tab novamente)
       if (flatListRef.current) {
         flatListRef.current.scrollToOffset({ offset: 0, animated: true });
       }
@@ -221,8 +218,7 @@ const styles = StyleSheet.create({
   posterContainer: {
     flex: 1,
     margin: 5,
-    width: itemWidth, // Adiciona uma largura fixa
-    height: itemWidth * (3 / 2), // Calcula a altura com base na proporção 2/3
+    aspectRatio: 2 / 3,
   },
   posterImage: {
     width: "100%",
