@@ -13,6 +13,7 @@ import TelaSeries from "../screens/TelaSeries";
 import TelaFavoritos from "../screens/TelaFavoritos";
 import DetalhesFilme from "../screens/DetalhesFilme";
 import DetalhesSerie from "../screens/DetalhesSerie";
+import TelaPerfil from "../screens/TelaPerfil"; // Importa a nova tela de perfil
 
 // Importe o provedor de contexto
 import { FavoritesProvider } from "./contexts/FavoritesContext";
@@ -22,6 +23,7 @@ const FilmesStack = createStackNavigator();
 const SeriesStack = createStackNavigator();
 const FavoritosStack = createStackNavigator();
 const InicioStack = createStackNavigator();
+const PerfilStack = createStackNavigator(); // Novo Stack Navigator para o perfil
 
 function FilmesStackNavigator() {
   return (
@@ -58,6 +60,15 @@ function InicioStackNavigator() {
       <InicioStack.Screen name="DetalhesFilme" component={DetalhesFilme} />
       <InicioStack.Screen name="DetalhesSerie" component={DetalhesSerie} />
     </InicioStack.Navigator>
+  );
+}
+
+// Componente para a navegação da aba "Perfil"
+function PerfilStackNavigator() {
+  return (
+    <PerfilStack.Navigator screenOptions={{ headerShown: false }}>
+      <PerfilStack.Screen name="PerfilTab" component={TelaPerfil} />
+    </PerfilStack.Navigator>
   );
 }
 
@@ -106,6 +117,9 @@ export default function App() {
               } else if (route.name === "Favoritos") {
                 iconName = focused ? "star" : "star-outline";
                 return <Ionicons name={iconName} size={size} color={color} />;
+              } else if (route.name === "Perfil") {
+                iconName = focused ? "person-circle" : "person-circle-outline";
+                return <Ionicons name={iconName} size={size} color={color} />;
               }
             },
           })}
@@ -114,6 +128,7 @@ export default function App() {
           <Tab.Screen name="Filmes" component={FilmesStackNavigator} />
           <Tab.Screen name="Séries" component={SeriesStackNavigator} />
           <Tab.Screen name="Favoritos" component={FavoritosStackNavigator} />
+          <Tab.Screen name="Perfil" component={PerfilStackNavigator} />
         </Tab.Navigator>
       </NavigationContainer>
     </FavoritesProvider>
