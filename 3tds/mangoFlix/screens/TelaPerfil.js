@@ -9,27 +9,56 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
+  Switch,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
+// URLs de imagens de personagens de Demon Slayer coloridas
+const profileImages = [
+  'https://i.pinimg.com/736x/f8/86/5f/f8865f0062c846accc69792d49869fbb.jpg'
+];
+
 export default function TelaPerfil() {
   const navigation = useNavigation();
+  const [isDarkMode, setIsDarkMode] = React.useState(true); // Estado local para o modo escuro
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode(prev => !prev);
+    // Em uma implementação real, o estado do tema seria gerenciado por um Contexto ou Redux
+    console.log('Modo Escuro ativado:', !isDarkMode);
+  };
+  
+  const handleAccountSettings = () => {
+    // Aqui você pode navegar para uma nova tela de configurações
+    Alert.alert('Funcionalidade Futura', 'A tela de Configurações da Conta será implementada em uma versão futura.');
+  };
+
+  const handleAccessibility = () => {
+    // Aqui você pode navegar para uma nova tela de acessibilidade
+    Alert.alert('Funcionalidade Futura', 'As opções de Acessibilidade serão implementadas em uma versão futura.');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Meu Perfil</Text>
-          <TouchableOpacity onPress={() => console.log("Configurações pressionado")}>
+          <TouchableOpacity 
+            onPress={handleAccountSettings}
+            accessibilityLabel="Abrir configurações"
+            accessibilityRole="button"
+          >
             <Ionicons name="cog-outline" size={28} color="white" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileSection}>
           <Image
-            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNRkVHKqJuBYlIyckk72EHUe9An5m1KJrlqA&s' }}
+            source={{ uri: profileImages[0] }}
             style={styles.profileImage}
+            accessibilityLabel="Foto de perfil de um personagem de anime"
           />
           <Text style={styles.profileName}>Usuário Mango</Text>
           <Text style={styles.profileEmail}>usuario.mango@email.com</Text>
@@ -54,22 +83,43 @@ export default function TelaPerfil() {
         </View>
 
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleAccountSettings}
+            accessibilityLabel="Ir para configurações da conta"
+            accessibilityRole="button"
+          >
             <Ionicons name="settings-outline" size={24} color="white" />
             <Text style={styles.menuText}>Configurações da Conta</Text>
             <Ionicons name="chevron-forward" size={20} color="gray" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="notifications-outline" size={24} color="white" />
-            <Text style={styles.menuText}>Notificações</Text>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleAccessibility}
+            accessibilityLabel="Ir para opções de acessibilidade"
+            accessibilityRole="button"
+          >
+            <MaterialCommunityIcons name="wheelchair" size={24} color="white" />
+            <Text style={styles.menuText}>Acessibilidade</Text>
             <Ionicons name="chevron-forward" size={20} color="gray" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuItem}>
             <MaterialCommunityIcons name="theme-light-dark" size={24} color="white" />
             <Text style={styles.menuText}>Modo Escuro</Text>
-            <Ionicons name="chevron-forward" size={20} color="gray" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={() => console.log("Sair pressionado")}>
+            <Switch
+              trackColor={{ false: "#767577", true: "#F5A623" }}
+              thumbColor={isDarkMode ? "#fff" : "#f4f3f4"}
+              onValueChange={handleToggleDarkMode}
+              value={isDarkMode}
+              accessibilityLabel="Alternar modo escuro"
+            />
+          </View>
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => Alert.alert('Funcionalidade Futura', 'A funcionalidade de Sair será implementada em uma versão futura.')}
+            accessibilityLabel="Sair do aplicativo"
+            accessibilityRole="button"
+          >
             <Ionicons name="log-out-outline" size={24} color="#e50914" />
             <Text style={[styles.menuText, { color: '#e50914' }]}>Sair</Text>
             <Ionicons name="chevron-forward" size={20} color="gray" />
