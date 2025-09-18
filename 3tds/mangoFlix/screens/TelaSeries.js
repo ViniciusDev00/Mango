@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,10 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
@@ -22,45 +23,77 @@ const genreMap = {
   Fantasia: 14,
   Comédia: 35,
   Crime: 80,
+  Mistério: 9648,
+  Documentário: 99,
 };
 
 const categories = Object.keys(genreMap);
 
+const { width } = Dimensions.get('window');
+const itemWidth = (width - 20) / 3 - 10;
+
 export default function TelaSeries() {
   const navigation = useNavigation();
+  const flatListRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchSeries = async (pageNumber, isNewCategory = false) => {
+    if (!hasMore && !isNewCategory) return;
+    try {
+      setLoading(true);
+      const genreId = genreMap[selectedCategory];
+      let url = `https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&page=${pageNumber}`;
+
+      if (genreId) {
+        url += `&with_genres=${genreId}`;
+      }
+
+      const response = await axios.get(url);
+      const newSeries = response.data.results.filter(serie => !serie.adult);
+
+      if (isNewCategory) {
+        setSeries(newSeries);
+      } else {
+        const uniqueSeries = newSeries.filter(
+          (newItem) => !series.some((existingItem) => existingItem.id === newItem.id)
+        );
+        setSeries((prevSeries) => [...prevSeries, ...uniqueSeries]);
+      }
+      
+      setHasMore(newSeries.length > 0);
+    } catch (error) {
+      console.error("Erro ao buscar séries:", error);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSeries = async () => {
-      try {
-        setLoading(true);
-        const genreId = genreMap[selectedCategory];
-        let url = `https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc`;
-
-        if (genreId) {
-          url += `&with_genres=${genreId}`;
-        }
-
-        const response = await axios.get(url);
-        setSeries(response.data.results);
-      } catch (error) {
-        console.error("Erro ao buscar séries:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSeries();
+    setPage(1);
+    setHasMore(true);
+    setSeries([]);
+    fetchSeries(1, true);
   }, [selectedCategory]);
 
-  if (loading) {
-    return (
-      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#F5A623" />
-      </View>
-    );
-  }
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setPage((prevPage) => prevPage + 1);
+      fetchSeries(page + 1);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -108,6 +141,7 @@ export default function TelaSeries() {
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={series}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
@@ -128,6 +162,9 @@ export default function TelaSeries() {
             <Text style={styles.posterTitle}>{item.name}</Text>
           </TouchableOpacity>
         )}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={() => loading && hasMore && <ActivityIndicator size="large" color="#F5A623" style={{ marginVertical: 20 }} />}
       />
     </SafeAreaView>
   );
@@ -184,7 +221,8 @@ const styles = StyleSheet.create({
   posterContainer: {
     flex: 1,
     margin: 5,
-    aspectRatio: 2 / 3,
+    width: itemWidth,
+    height: itemWidth * (3 / 2),
   },
   posterImage: {
     width: "100%",

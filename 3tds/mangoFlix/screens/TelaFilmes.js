@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,10 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
@@ -23,45 +24,76 @@ const genreMap = {
   Animação: 16,
   Terror: 27,
   Fantasia: 14,
+  Romance: 10749,
 };
 
 const categories = Object.keys(genreMap);
 
+const { width } = Dimensions.get('window');
+const itemWidth = (width - 20) / 3 - 10; // 20 para o padding horizontal e 10 para a margem
+
 export default function TelaFilmes() {
   const navigation = useNavigation();
+  const flatListRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchMovies = async (pageNumber, isNewCategory = false) => {
+    if (!hasMore && !isNewCategory) return;
+    try {
+      setLoading(true);
+      const genreId = genreMap[selectedCategory];
+      let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&page=${pageNumber}`;
+
+      if (genreId) {
+        url += `&with_genres=${genreId}`;
+      }
+
+      const response = await axios.get(url);
+      const newMovies = response.data.results.filter(movie => !movie.adult);
+
+      if (isNewCategory) {
+        setMovies(newMovies);
+      } else {
+        const uniqueMovies = newMovies.filter(
+          (newItem) => !movies.some((existingItem) => existingItem.id === newItem.id)
+        );
+        setMovies((prevMovies) => [...prevMovies, ...uniqueMovies]);
+      }
+
+      setHasMore(newMovies.length > 0);
+    } catch (error) {
+      console.error("Erro ao buscar filmes:", error);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-        const genreId = genreMap[selectedCategory];
-        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc`;
-
-        if (genreId) {
-          url += `&with_genres=${genreId}`;
-        }
-
-        const response = await axios.get(url);
-        setMovies(response.data.results);
-      } catch (error) {
-        console.error("Erro ao buscar filmes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMovies();
+    setPage(1);
+    setHasMore(true);
+    setMovies([]);
+    fetchMovies(1, true);
   }, [selectedCategory]);
 
-  if (loading) {
-    return (
-      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#F5A623" />
-      </View>
-    );
-  }
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setPage((prevPage) => prevPage + 1);
+      fetchMovies(page + 1);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -109,6 +141,7 @@ export default function TelaFilmes() {
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={movies}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
@@ -129,6 +162,9 @@ export default function TelaFilmes() {
             <Text style={styles.posterTitle}>{item.title}</Text>
           </TouchableOpacity>
         )}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={() => loading && hasMore && <ActivityIndicator size="large" color="#F5A623" style={{ marginVertical: 20 }} />}
       />
     </SafeAreaView>
   );
@@ -185,7 +221,8 @@ const styles = StyleSheet.create({
   posterContainer: {
     flex: 1,
     margin: 5,
-    aspectRatio: 2 / 3,
+    width: itemWidth, // Adiciona uma largura fixa
+    height: itemWidth * (3 / 2), // Calcula a altura com base na proporção 2/3
   },
   posterImage: {
     width: "100%",
