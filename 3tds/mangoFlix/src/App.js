@@ -79,8 +79,9 @@ function MainTabNavigator() {
         tabBarStyle: {
           backgroundColor: "#181818",
           borderTopWidth: 0,
-          height: 90,
-          paddingBottom: 30,
+          height: 70,          // altura um pouco menor
+          paddingBottom: 15,   // espaçamento inferior equilibrado
+          paddingTop: 10,
         },
         tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "gray",

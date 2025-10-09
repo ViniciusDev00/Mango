@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   ImageBackground,
   ActivityIndicator,
+  StatusBar,
+  Platform ,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -122,6 +124,11 @@ export default function TelaInicial() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        translucent={false}
+        backgroundColor="#121212"
+        barStyle="light-content"
+      />
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Image
@@ -234,6 +241,7 @@ export default function TelaInicial() {
   );
 }
 
+
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#121212" },
   container: { flex: 1 },
@@ -310,4 +318,5 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: "center",
   },
+  
 });
