@@ -8,15 +8,14 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  ImageBackground,
   ActivityIndicator,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
-const { width } = Dimensions.get('window');
 
 const fetchTrending = async () => {
   const response = await axios.get(
@@ -58,29 +57,6 @@ const PosterItem = ({ item, navigation }) => (
   </TouchableOpacity>
 );
 
-const TrendingItem = ({ item, navigation }) => (
-  <TouchableOpacity
-    style={styles.trendingItemContainer}
-    onPress={() => {
-      const navParams = item.media_type === "movie"
-        ? { screen: "DetalhesFilme", params: { filmeId: item.id } }
-        : { screen: "DetalhesSerie", params: { serieId: item.id } };
-      navigation.navigate(navParams.screen, navParams.params);
-    }}
-  >
-    <Image
-      source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-      style={styles.trendingImage}
-    />
-    <View style={styles.trendingOverlay}>
-      <Text style={styles.trendingTitle}>{item.title || item.name}</Text>
-      <Text style={styles.trendingSubtitle}>
-        {item.media_type === "movie" ? "Filme" : "Série"} em destaque
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
-
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{title}</Text>
@@ -95,6 +71,7 @@ export default function TelaInicial() {
   const [recommended, setRecommended] = useState([]);
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -123,6 +100,18 @@ export default function TelaInicial() {
     loadData();
   }, []);
 
+  const handleNextBanner = () => {
+    setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
+  };
+
+  const handlePrevBanner = () => {
+    setCurrentBannerIndex((prevIndex) =>
+      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
+    );
+  };
+
+  const currentBanner = banners[currentBannerIndex];
+
   if (loading) {
     return (
       <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -133,36 +122,66 @@ export default function TelaInicial() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Image
-          source={require("../img/manga-removebg-preview.png")}
-          style={styles.logo}
-        />
-        <View style={styles.headerIcons}>
-          <Ionicons
-            name="search-outline"
-            size={26}
-            color="white"
-            style={{ marginRight: 15 }}
-          />
-          <Ionicons name="person-circle-outline" size={28} color="white" />
-        </View>
-      </View>
-
       <ScrollView style={styles.container}>
-        {banners.length > 0 && (
-          <View style={styles.carouselContainer}>
-            <Text style={styles.sectionTitleBanner}>Em alta</Text>
-            <FlatList
-              data={banners}
-              renderItem={({ item }) => <TrendingItem item={item} navigation={navigation} />}
-              keyExtractor={(item) => item.id.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled
-              snapToInterval={width - 32}
-              decelerationRate="fast"
+        <View style={styles.header}>
+          <Image
+            source={require("../img/manga-removebg-preview.png")}
+            style={styles.logo}
+          />
+          <View style={styles.headerIcons}>
+            <Ionicons
+              name="search-outline"
+              size={26}
+              color="white"
+              style={{ marginRight: 15 }}
             />
+            <Ionicons name="person-circle-outline" size={28} color="white" />
+          </View>
+        </View>
+
+        {currentBanner && (
+          <View style={styles.bannerContainer}>
+            <Text style={styles.sectionTitleBanner}>Em alta</Text>
+            <TouchableOpacity
+              onPress={() => {
+                const navParams = currentBanner.media_type === "movie" 
+                  ? { screen: "DetalhesFilme", params: { filmeId: currentBanner.id } }
+                  : { screen: "DetalhesSerie", params: { serieId: currentBanner.id } };
+                navigation.navigate(navParams.screen, navParams.params);
+              }}
+            >
+              <ImageBackground
+                source={{
+                  uri: `https://image.tmdb.org/t/p/w500${currentBanner.poster_path}`,
+                }}
+                style={styles.bannerImage}
+                imageStyle={{ borderRadius: 12 }}
+              >
+                <View style={styles.bannerOverlay}>
+                  <Text style={styles.bannerTitle}>
+                    {currentBanner.title || currentBanner.name}
+                  </Text>
+                  <Text style={styles.bannerSubtitle}>
+                    {currentBanner.media_type === "movie" ? "Filme" : "Série"} em destaque
+                  </Text>
+                  <TouchableOpacity style={styles.watchButton}>
+                    <Text style={styles.watchButtonText}>Ver Detalhes</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={[styles.arrowButton, { left: 10 }]}
+                  onPress={handlePrevBanner}
+                >
+                  <Ionicons name="chevron-back" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.arrowButton, { right: 10 }]}
+                  onPress={handleNextBanner}
+                >
+                  <Ionicons name="chevron-forward" size={24} color="white" />
+                </TouchableOpacity>
+              </ImageBackground>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -223,34 +242,34 @@ const styles = StyleSheet.create({
   },
   logo: { width: 35, height: 35 },
   headerIcons: { flexDirection: "row", alignItems: "center" },
-  carouselContainer: { paddingVertical: 10, height: width * 0.8 }, // Ajuste na altura
+  bannerContainer: { paddingHorizontal: 16, marginTop: 10 },
   sectionTitleBanner: {
     fontSize: 22,
     fontWeight: "bold",
     color: "white",
     marginBottom: 12,
-    paddingHorizontal: 16,
   },
-  trendingItemContainer: {
-    width: width - 32,
-    marginHorizontal: 5,
-    height: width * 0.6,
-  },
-  trendingImage: {
+  bannerImage: {
     width: "100%",
-    height: "100%",
-    borderRadius: 12,
-    resizeMode: 'cover',
-  },
-  trendingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    height: 200,
     justifyContent: "flex-end",
-    padding: 16,
-    borderRadius: 12,
   },
-  trendingTitle: { color: "white", fontSize: 24, fontWeight: "bold" },
-  trendingSubtitle: {
+  arrowButton: {
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateY: -12 }], // Centraliza verticalmente
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 8,
+    borderRadius: 50,
+  },
+  bannerOverlay: {
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 12,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  bannerTitle: { color: "white", fontSize: 24, fontWeight: "bold" },
+  bannerSubtitle: {
     color: "white",
     fontSize: 14,
     fontWeight: "300",
@@ -277,7 +296,7 @@ const styles = StyleSheet.create({
   sectionTitle: { color: "white", fontSize: 20, fontWeight: "bold" },
   posterItemContainer: {
     marginRight: 10,
-    width: 120,
+    width: 120, // Define uma largura fixa
   },
   posterImage: { width: "100%", height: 180, borderRadius: 8 },
   posterTitle: {
