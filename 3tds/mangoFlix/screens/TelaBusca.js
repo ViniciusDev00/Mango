@@ -7,14 +7,14 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
+  // SafeAreaView não é mais necessário aqui
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 
-const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b"; // Sua chave da API do TMDB
+const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
 export default function TelaBusca() {
   const navigation = useNavigation();
@@ -32,9 +32,8 @@ export default function TelaBusca() {
         const response = await axios.get(
           `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&language=pt-BR&query=${text}`
         );
-        // Filtra para incluir apenas filmes (movie) e séries (tv)
         const filteredResults = response.data.results.filter(
-          (item) => item.media_type === 'movie' || item.media_type === 'tv'
+          (item) => (item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path
         );
         setResults(filteredResults);
       } catch (err) {
@@ -71,7 +70,8 @@ export default function TelaBusca() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // ===== MUDANÇA PRINCIPAL: View em vez de SafeAreaView =====
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="white" />
@@ -89,23 +89,32 @@ export default function TelaBusca() {
       {loading && <ActivityIndicator size="large" color="#F5A623" style={{ marginTop: 20 }} />}
       {error && <Text style={styles.errorText}>{error}</Text>}
 
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        style={styles.resultsList}
-      />
-    </SafeAreaView>
+      <View style={styles.listContainer}>
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+        />
+      </View>
+    </View>
+    // ==========================================================
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#121212" },
+  // ===== E AQUI: 'container' com altura definida para web =====
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+    // @ts-ignore - 'height' é uma propriedade web
+    height: '100vh',
+    paddingTop: 40, // Simula o preenchimento superior da SafeAreaView
+  },
+  // ============================================================
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#252525',
@@ -120,12 +129,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 15,
   },
-  resultsList: {
-    paddingHorizontal: 5,
+  listContainer: {
+    flex: 1,
+    overflow: 'hidden', // Ajuda a conter a lista
   },
   resultItem: {
     flexDirection: "row",
     marginVertical: 5,
+    marginHorizontal: 10,
     backgroundColor: "#1C1C1C",
     borderRadius: 10,
     overflow: 'hidden',

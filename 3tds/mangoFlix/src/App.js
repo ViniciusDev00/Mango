@@ -1,4 +1,3 @@
-// App.js
 import React from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
@@ -16,10 +15,6 @@ import DetalhesSerie from "../screens/DetalhesSerie";
 import TelaPerfil from "../screens/TelaPerfil";
 import TelaBusca from "../screens/TelaBusca";
 
-// ADICIONADO: Importe as novas telas que criamos
-import TelaConfiguracoes from "../screens/TelaConfiguracoes";
-import TelaAcessibilidade from "../screens/TelaAcessibilidade";
-
 // Importe o provedor de contexto
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 
@@ -31,6 +26,7 @@ function FilmesStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="FilmesTab" component={TelaFilmes} />
+      {/* A tela de detalhes ainda fica aqui para a navegação interna da aba */}
       <Stack.Screen name="DetalhesFilme" component={DetalhesFilme} />
     </Stack.Navigator>
   );
@@ -65,18 +61,15 @@ function InicioStackNavigator() {
   );
 }
 
-// ALTERADO: Adicionamos as novas telas ao Stack de Perfil
 function PerfilStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PerfilTab" component={TelaPerfil} />
-      <Stack.Screen name="Configuracoes" component={TelaConfiguracoes} />
-      <Stack.Screen name="Acessibilidade" component={TelaAcessibilidade} />
     </Stack.Navigator>
   );
 }
 
-// Componente com a navegação por abas (nenhuma alteração aqui)
+// Componente com a navegação por abas
 function MainTabNavigator() {
   return (
     <Tab.Navigator
@@ -123,7 +116,7 @@ function MainTabNavigator() {
   );
 }
 
-// Estrutura principal do App (nenhuma alteração aqui)
+// Estrutura principal do App
 export default function App() {
   return (
     <FavoritesProvider>
@@ -132,6 +125,9 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainTabNavigator} />
           <Stack.Screen name="TelaBusca" component={TelaBusca} />
+          {/* CORREÇÃO APLICADA AQUI */}
+          <Stack.Screen name="DetalhesFilme" component={DetalhesFilme} />
+          <Stack.Screen name="DetalhesSerie" component={DetalhesSerie} />
         </Stack.Navigator>
       </NavigationContainer>
     </FavoritesProvider>
