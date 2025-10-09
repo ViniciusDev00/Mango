@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-// A LINHA ABAIXO FOI CORRIGIDA
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Importe suas telas
@@ -16,6 +15,10 @@ import DetalhesFilme from "../screens/DetalhesFilme";
 import DetalhesSerie from "../screens/DetalhesSerie";
 import TelaPerfil from "../screens/TelaPerfil";
 import TelaBusca from "../screens/TelaBusca";
+
+// ADICIONADO: Importe as novas telas que criamos
+import TelaConfiguracoes from "../screens/TelaConfiguracoes";
+import TelaAcessibilidade from "../screens/TelaAcessibilidade";
 
 // Importe o provedor de contexto
 import { FavoritesProvider } from "./contexts/FavoritesContext";
@@ -62,15 +65,18 @@ function InicioStackNavigator() {
   );
 }
 
+// ALTERADO: Adicionamos as novas telas ao Stack de Perfil
 function PerfilStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PerfilTab" component={TelaPerfil} />
+      <Stack.Screen name="Configuracoes" component={TelaConfiguracoes} />
+      <Stack.Screen name="Acessibilidade" component={TelaAcessibilidade} />
     </Stack.Navigator>
   );
 }
 
-// Componente com a navegação por abas
+// Componente com a navegação por abas (nenhuma alteração aqui)
 function MainTabNavigator() {
   return (
     <Tab.Navigator
@@ -117,7 +123,7 @@ function MainTabNavigator() {
   );
 }
 
-// Estrutura principal do App
+// Estrutura principal do App (nenhuma alteração aqui)
 export default function App() {
   return (
     <FavoritesProvider>
