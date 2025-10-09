@@ -1,4 +1,6 @@
-import React, { useContext, useState } from 'react'; // ALTERADO
+// src/screens/TelaPerfil.js
+
+import React, { useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -12,38 +14,31 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { FavoritesContext } from '../src/contexts/FavoritesContext'; // ADICIONADO
-
-const profileImages = [
-  'https://i.pinimg.com/736x/f8/86/5f/f8865f0062c846accc69792d49869fbb.jpg'
-];
+import { FavoritesContext } from '../src/contexts/FavoritesContext';
+import { UserContext } from '../src/contexts/UserContext';
 
 export default function TelaPerfil() {
   const navigation = useNavigation();
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const { favorites } = useContext(FavoritesContext); // ADICIONADO: Pega os favoritos do contexto
+  const { favorites } = useContext(FavoritesContext);
+  const { user } = useContext(UserContext); // Pega os dados do usuário do contexto
 
   const handleToggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
-    // Para uma implementação real, o estado do tema seria gerenciado por um Contexto
-    // e aplicado em todo o App, não apenas localmente.
     Alert.alert(
       "Modo Escuro",
       "A funcionalidade completa de troca de tema será implementada futuramente."
     );
   };
   
-  // ALTERADO: Navega para a tela de Configurações
   const handleAccountSettings = () => {
     navigation.navigate('Configuracoes');
   };
 
-  // ALTERADO: Navega para a tela de Acessibilidade
   const handleAccessibility = () => {
     navigation.navigate('Acessibilidade');
   };
 
-  // ADICIONADO: Função para o botão de Sair
   const handleLogout = () => {
     Alert.alert(
       'Sair',
@@ -62,8 +57,8 @@ export default function TelaPerfil() {
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Meu Perfil</Text>
           <TouchableOpacity 
-            onPress={() => Alert.alert('Funcionalidade Futura', 'A engrenagem superior pode levar a outras configurações no futuro.')}
-            accessibilityLabel="Abrir configurações extras"
+            onPress={handleAccountSettings}
+            accessibilityLabel="Abrir configurações da conta"
             accessibilityRole="button"
           >
             <Ionicons name="cog-outline" size={28} color="white" />
@@ -72,12 +67,12 @@ export default function TelaPerfil() {
 
         <View style={styles.profileSection}>
           <Image
-            source={{ uri: profileImages[0] }}
+            source={{ uri: user.profileImage }} // Usa a imagem do contexto
             style={styles.profileImage}
-            accessibilityLabel="Foto de perfil de um personagem de anime"
+            accessibilityLabel="Foto de perfil do usuário"
           />
-          <Text style={styles.profileName}>Usuário Mango</Text>
-          <Text style={styles.profileEmail}>usuario.mango@email.com</Text>
+          <Text style={styles.profileName}>{user.name}</Text> {/* Usa o nome do contexto */}
+          <Text style={styles.profileEmail}>{user.email}</Text> {/* Usa o e-mail do contexto */}
         </View>
 
         <View style={styles.statsContainer}>
@@ -93,7 +88,6 @@ export default function TelaPerfil() {
           </View>
           <View style={styles.statItem}>
             <Ionicons name="star-outline" size={24} color="#F5A623" />
-            {/* ALTERADO: Número de favoritos agora é dinâmico */}
             <Text style={styles.statNumber}>{favorites.length}</Text>
             <Text style={styles.statText}>Favoritos</Text>
           </View>
@@ -102,7 +96,7 @@ export default function TelaPerfil() {
         <View style={styles.menuContainer}>
           <TouchableOpacity 
             style={styles.menuItem}
-            onPress={handleAccountSettings} // ALTERADO
+            onPress={handleAccountSettings}
             accessibilityLabel="Ir para configurações da conta"
             accessibilityRole="button"
           >
@@ -112,7 +106,7 @@ export default function TelaPerfil() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.menuItem}
-            onPress={handleAccessibility} // ALTERADO
+            onPress={handleAccessibility}
             accessibilityLabel="Ir para opções de acessibilidade"
             accessibilityRole="button"
           >
@@ -133,7 +127,7 @@ export default function TelaPerfil() {
           </View>
           <TouchableOpacity 
             style={styles.menuItem} 
-            onPress={handleLogout} // ALTERADO
+            onPress={handleLogout}
             accessibilityLabel="Sair do aplicativo"
             accessibilityRole="button"
           >

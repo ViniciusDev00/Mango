@@ -6,14 +6,12 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 export default function TelaConfiguracoes() {
   const navigation = useNavigation();
-  const [notifications, setNotifications] = React.useState(true);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -26,27 +24,24 @@ export default function TelaConfiguracoes() {
       </View>
       <ScrollView style={styles.container}>
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
+          {/* ALTERADO: Agora navega para a tela de editar perfil */}
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => navigation.navigate('EditarPerfil')}
+          >
             <Ionicons name="person-outline" size={24} color="white" />
             <Text style={styles.menuText}>Editar Perfil</Text>
             <Ionicons name="chevron-forward" size={20} color="gray" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="key-outline" size={24} color="white" />
-            <Text style={styles.menuText}>Alterar Senha</Text>
-            <Ionicons name="chevron-forward" size={20} color="gray" />
-          </TouchableOpacity>
-          <View style={styles.menuItem}>
-            <Ionicons name="notifications-outline" size={24} color="white" />
-            <Text style={styles.menuText}>Notificações Push</Text>
-            <Switch
-              trackColor={{ false: "#767577", true: "#F5A623" }}
-              thumbColor={notifications ? "#fff" : "#f4f3f4"}
-              onValueChange={() => setNotifications(prev => !prev)}
-              value={notifications}
-            />
-          </View>
-          <TouchableOpacity style={styles.menuItem}>
+
+          {/* REMOVIDO: Item de Alterar Senha */}
+          {/* REMOVIDO: Item de Notificações Push */}
+
+          {/* ALTERADO: Agora navega para a tela de privacidade */}
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => navigation.navigate('Privacidade')}
+          >
             <Ionicons name="lock-closed-outline" size={24} color="white" />
             <Text style={styles.menuText}>Privacidade</Text>
             <Ionicons name="chevron-forward" size={20} color="gray" />
