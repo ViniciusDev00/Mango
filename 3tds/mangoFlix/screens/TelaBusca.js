@@ -3,12 +3,11 @@ import {
   View,
   TextInput,
   StyleSheet,
-  FlatList,
+  ScrollView,
   Text,
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  // SafeAreaView não é mais necessário aqui
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
@@ -47,30 +46,7 @@ export default function TelaBusca() {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.resultItem}
-      onPress={() => {
-        if (item.media_type === "movie") {
-          navigation.navigate("DetalhesFilme", { filmeId: item.id });
-        } else if (item.media_type === "tv") {
-          navigation.navigate("DetalhesSerie", { serieId: item.id });
-        }
-      }}
-    >
-      <Image
-        source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-        style={styles.posterImage}
-      />
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{item.title || item.name}</Text>
-        <Text style={styles.mediaType}>{item.media_type === 'movie' ? 'Filme' : 'Série'}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
-    // ===== MUDANÇA PRINCIPAL: View em vez de SafeAreaView =====
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -89,28 +65,43 @@ export default function TelaBusca() {
       {loading && <ActivityIndicator size="large" color="#F5A623" style={{ marginTop: 20 }} />}
       {error && <Text style={styles.errorText}>{error}</Text>}
 
-      <View style={styles.listContainer}>
-        <FlatList
-          data={results}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-        />
-      </View>
+      <ScrollView style={styles.listContainer}>
+        {results.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.resultItem}
+            onPress={() => {
+              if (item.media_type === "movie") {
+                navigation.navigate("DetalhesFilme", { filmeId: item.id });
+              } else if (item.media_type === "tv") {
+                navigation.navigate("DetalhesSerie", { serieId: item.id });
+              }
+            }}
+          >
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+              style={styles.posterImage}
+            />
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{item.title || item.name}</Text>
+              <Text style={styles.mediaType}>{item.media_type === 'movie' ? 'Filme' : 'Série'}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
-    // ==========================================================
   );
 }
 
 const styles = StyleSheet.create({
-  // ===== E AQUI: 'container' com altura definida para web =====
   container: {
-    flex: 1,
     backgroundColor: "#121212",
-    // @ts-ignore - 'height' é uma propriedade web
-    height: '100vh',
-    paddingTop: 40, // Simula o preenchimento superior da SafeAreaView
+    paddingTop: 40,
+    // ===== CORREÇÃO DEFINITIVA APLICADA AQUI =====
+    height: '100vh', // Garante que o contêiner ocupe 100% da altura da janela
+    display: 'flex', // Define o modo de layout como flexbox
+    flexDirection: 'column', // Organiza os filhos (header, lista) em uma coluna
   },
-  // ============================================================
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -130,8 +121,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   listContainer: {
-    flex: 1,
-    overflow: 'hidden', // Ajuda a conter a lista
+    flex: 1, // Faz a ScrollView expandir para ocupar o espaço restante
   },
   resultItem: {
     flexDirection: "row",
