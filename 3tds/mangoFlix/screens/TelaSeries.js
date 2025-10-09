@@ -99,13 +99,18 @@ export default function TelaSeries() {
           style={styles.logo}
         />
         <View style={styles.headerIcons}>
-          <Ionicons
-            name="search-outline"
-            size={26}
-            color="white"
-            style={{ marginRight: 15 }}
-          />
-          <Ionicons name="person-circle-outline" size={28} color="white" />
+          {/* ÍCONE DE BUSCA MODIFICADO */}
+          <TouchableOpacity onPress={() => navigation.navigate('TelaBusca')}>
+            <Ionicons
+              name="search-outline"
+              size={26}
+              color="white"
+              style={{ marginRight: 15 }}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+            <Ionicons name="person-circle-outline" size={28} color="white" />
+          </TouchableOpacity>
         </View>
       </View>
 

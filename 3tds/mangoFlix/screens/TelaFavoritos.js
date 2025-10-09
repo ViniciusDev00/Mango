@@ -1,4 +1,3 @@
-// src/screens/TelaFavoritos.js
 import React, { useContext } from "react";
 import {
   View,
@@ -11,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { FavoritesContext } from "../src/contexts/FavoritesContext"; // <-- Caminho corrigido
+import { FavoritesContext } from "../src/contexts/FavoritesContext";
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
@@ -35,13 +34,18 @@ export default function TelaFavoritos() {
           style={styles.logo}
         />
         <View style={styles.headerIcons}>
-          <Ionicons
-            name="search-outline"
-            size={26}
-            color="white"
-            style={{ marginRight: 15 }}
-          />
-          <Ionicons name="person-circle-outline" size={28} color="white" />
+          {/* ÍCONE DE BUSCA MODIFICADO */}
+          <TouchableOpacity onPress={() => navigation.navigate('TelaBusca')}>
+            <Ionicons
+              name="search-outline"
+              size={26}
+              color="white"
+              style={{ marginRight: 15 }}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+            <Ionicons name="person-circle-outline" size={28} color="white" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -49,7 +53,7 @@ export default function TelaFavoritos() {
 
       <FlatList
         data={favorites}
-        keyExtractor={(item) => `${item.type}-${item.id}`} // Chave única
+        keyExtractor={(item) => `${item.type}-${item.id}`}
         numColumns={3}
         style={styles.gridContainer}
         renderItem={({ item }) => (

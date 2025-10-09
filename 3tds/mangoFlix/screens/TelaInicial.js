@@ -129,13 +129,18 @@ export default function TelaInicial() {
             style={styles.logo}
           />
           <View style={styles.headerIcons}>
-            <Ionicons
-              name="search-outline"
-              size={26}
-              color="white"
-              style={{ marginRight: 15 }}
-            />
-            <Ionicons name="person-circle-outline" size={28} color="white" />
+            {/* ÍCONE DE BUSCA MODIFICADO */}
+            <TouchableOpacity onPress={() => navigation.navigate('TelaBusca')}>
+              <Ionicons
+                name="search-outline"
+                size={26}
+                color="white"
+                style={{ marginRight: 15 }}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+              <Ionicons name="person-circle-outline" size={28} color="white" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -257,7 +262,7 @@ const styles = StyleSheet.create({
   arrowButton: {
     position: 'absolute',
     top: '50%',
-    transform: [{ translateY: -12 }], // Centraliza verticalmente
+    transform: [{ translateY: -12 }],
     backgroundColor: 'rgba(0,0,0,0.5)',
     padding: 8,
     borderRadius: 50,
@@ -296,7 +301,7 @@ const styles = StyleSheet.create({
   sectionTitle: { color: "white", fontSize: 20, fontWeight: "bold" },
   posterItemContainer: {
     marginRight: 10,
-    width: 120, // Define uma largura fixa
+    width: 120,
   },
   posterImage: { width: "100%", height: 180, borderRadius: 8 },
   posterTitle: {
