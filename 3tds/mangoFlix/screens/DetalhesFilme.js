@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react"; // 1. Adicionado useContext
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { FavoritesContext } from "../src/contexts/FavoritesContext"; // 2. Importado o Context
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 const { width } = Dimensions.get('window');
@@ -25,7 +26,26 @@ export default function DetalhesFilme({ route, navigation }) {
   const [similarMovies, setSimilarMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trailerUrl, setTrailerUrl] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false); // Novo estado para favoritos
+
+  // 3. Lógica do Context (copiada de DetalhesSerie)
+  const { addFavorite, removeFavorite, isFavorite } = useContext(FavoritesContext);
+  const isCurrentlyFavorite = filme ? isFavorite(filme.id, "movie") : false;
+
+  const handleFavoritePress = () => {
+    if (!filme) return;
+    const favoriteItem = {
+      id: filme.id,
+      type: "movie", // <-- Alterado para "movie"
+      title: filme.title, // <-- Alterado para filme.title
+      image: `https://image.tmdb.org/t/p/w500${filme.poster_path}`,
+    };
+    if (isCurrentlyFavorite) {
+      removeFavorite(favoriteItem);
+    } else {
+      addFavorite(favoriteItem);
+    }
+  };
+  // Fim da lógica do Context
 
   useEffect(() => {
     const fetchDetalhesFilme = async () => {
@@ -48,8 +68,8 @@ export default function DetalhesFilme({ route, navigation }) {
           ]);
 
         setFilme(respostaFilme.data);
-        setCast(respostaCast.data.cast.slice(0, 5)); // Pega os 5 primeiros atores
-        setSimilarMovies(respostaSimilar.data.results.slice(0, 10)); // Pega 10 filmes similares
+        setCast(respostaCast.data.cast.slice(0, 5)); 
+        setSimilarMovies(respostaSimilar.data.results.slice(0, 10)); 
 
         const trailer = respostaVideos.data.results.find(
           (video) => video.type === "Trailer" && video.site === "YouTube"
@@ -165,33 +185,33 @@ export default function DetalhesFilme({ route, navigation }) {
             ))}
           </ScrollView>
 
-          {/* Botões de Ação */}
-          <View style={styles.actionButtonsContainer}>
-            {trailerUrl && (
-              <TouchableOpacity
-                style={styles.botaoAssistir}
-                onPress={() => Linking.openURL(trailerUrl)}
-              >
-                <Text style={styles.textoBotao}>Assistir Trailer</Text>
-              </TouchableOpacity>
-            )}
+          {/* Botões de Ação (Estilo de DetalhesSerie) */}
+          {trailerUrl && (
             <TouchableOpacity
-              style={[
-                styles.botaoFavorito,
-                isFavorite && styles.botaoFavoritoAtivo,
-              ]}
-              onPress={() => setIsFavorite(!isFavorite)}
+              style={styles.trailerButton}
+              onPress={() => Linking.openURL(trailerUrl)}
             >
-              <Ionicons
-                name={isFavorite ? "star" : "star-outline"}
-                size={24}
-                color={isFavorite ? "#fff" : "white"}
-              />
-              <Text style={styles.textoBotaoFavorito}>
-                {isFavorite ? "Favoritado" : "Adicionar aos Favoritos"}
-              </Text>
+              <Ionicons name="play-circle" size={24} color="white" />
+              <Text style={styles.trailerButtonText}>Assistir Trailer</Text>
             </TouchableOpacity>
-          </View>
+          )}
+          <TouchableOpacity
+            style={[
+              styles.botaoFavorito,
+              isCurrentlyFavorite && styles.botaoFavoritoAtivo,
+            ]}
+            onPress={handleFavoritePress}
+          >
+            <Ionicons
+              name={isCurrentlyFavorite ? "star" : "star-outline"}
+              size={24}
+              color={isCurrentlyFavorite ? "#fff" : "white"}
+            />
+            <Text style={styles.textoBotaoFavorito}>
+              {isCurrentlyFavorite ? "Favoritado" : "Adicionar aos Favoritos"}
+            </Text>
+          </TouchableOpacity>
+          {/* Fim dos Botões de Ação */}
 
           {/* Seção de Filmes Similares */}
           {similarMovies.length > 0 && (
@@ -228,12 +248,22 @@ export default function DetalhesFilme({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#121212" },
+  safeArea: { 
+    backgroundColor: "#121212",
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column' 
+  },
   scrollView: { flex: 1 },
-  poster: { width: "100%", height: width * 1.5, resizeMode: "cover" },
+  // 4. Estilo da imagem corrigido (igual ao DetalhesSerie)
+  poster: { 
+    width: "100%", 
+    height: Dimensions.get("window").height * 0.6, 
+    resizeMode: "cover" 
+  },
   backButton: {
     position: "absolute",
-    top: 10,
+    top: 10, // Ajustado para ficar igual ao DetalhesSerie (era 50)
     left: 10,
     zIndex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -275,38 +305,45 @@ const styles = StyleSheet.create({
     textAlign: "center",
     maxWidth: 80,
   },
-  actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  botaoAssistir: {
-    backgroundColor: "#e50914",
-    padding: 15,
-    borderRadius: 5,
-    flex: 1,
-    marginRight: 10,
-    alignItems: "center",
-  },
-  textoBotao: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  botaoFavorito: {
-    backgroundColor: "#333",
-    padding: 15,
-    borderRadius: 5,
+  
+  // 5. Estilos dos botões copiados de DetalhesSerie
+  trailerButton: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "#F5A623",
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginTop: 15,
+  },
+  trailerButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
     marginLeft: 10,
+  },
+  botaoFavorito: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#252525",
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginTop: 15,
     justifyContent: "center",
   },
-  botaoFavoritoAtivo: { backgroundColor: "#F5A623" },
+  botaoFavoritoAtivo: { 
+    backgroundColor: "#F5A623" 
+  },
   textoBotaoFavorito: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
-    marginLeft: 5,
+    marginLeft: 10,
   },
+  // Fim dos estilos dos botões
+
   similarSection: { marginTop: 20 },
   similarPosterContainer: { marginRight: 10 },
   similarPosterImage: { width: 100, height: 150, borderRadius: 8 },

@@ -6,17 +6,18 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Dimensions,
   FlatList,
   Linking,
 } from "react-native";
+// Importação correta do SafeAreaView para flex: 1 funcionar
+import { SafeAreaView } from "react-native-safe-area-context"; 
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import { FavoritesContext } from "../src/contexts/FavoritesContext"; // <-- Caminho corrigido
+import { FavoritesContext } from "../src/contexts/FavoritesContext"; // Lógica de favoritos já estava aqui
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 
@@ -29,6 +30,7 @@ export default function DetalhesSerie({ route }) {
   const [loading, setLoading] = useState(true);
   const [trailerUrl, setTrailerUrl] = useState(null);
 
+  // Lógica de favoritos já estava aqui
   const { addFavorite, removeFavorite, isFavorite } = useContext(FavoritesContext);
   const isCurrentlyFavorite = serie ? isFavorite(serie.id, "tv") : false;
 
@@ -69,6 +71,7 @@ export default function DetalhesSerie({ route }) {
     fetchSeriesDetails();
   }, [serieId]);
 
+  // Lógica de favoritos já estava aqui
   const handleFavoritePress = () => {
     if (!serie) return;
     const favoriteItem = {
@@ -90,6 +93,7 @@ export default function DetalhesSerie({ route }) {
     }
   };
 
+  // Botão de navegação "Voltar"
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -112,6 +116,7 @@ export default function DetalhesSerie({ route }) {
           style={styles.poster}
         />
         
+        {/* Botão de navegação "Voltar" */}
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <Ionicons name="chevron-back" size={32} color="white" />
         </TouchableOpacity>
@@ -134,6 +139,7 @@ export default function DetalhesSerie({ route }) {
             </TouchableOpacity>
           )}
 
+          {/* Botão de Favoritos */}
           <TouchableOpacity
             style={[
               styles.botaoFavorito,
@@ -183,7 +189,7 @@ export default function DetalhesSerie({ route }) {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.similarSerieItem}
-              onPress={() => navigation.navigate("DetalhesSerie", { serieId: item.id })}
+              onPress={() => navigation.push("DetalhesSerie", { serieId: item.id })}
             >
               <Image
                 source={{
@@ -201,9 +207,12 @@ export default function DetalhesSerie({ route }) {
 }
 
 const styles = StyleSheet.create({
+  // Correção para o Scroll funcionar na WEB
   safeArea: {
-    flex: 1,
     backgroundColor: "#121212",
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column'
   },
   scrollView: {
     flex: 1,
@@ -215,7 +224,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 50,
+    top: 10, // Ajustado para ficar igual ao DetalhesFilme (era 50)
     left: 10,
     zIndex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

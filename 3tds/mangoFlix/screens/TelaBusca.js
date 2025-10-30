@@ -97,10 +97,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#121212",
     paddingTop: 40,
-    // ===== CORREÇÃO DEFINITIVA APLICADA AQUI =====
-    height: '100vh', // Garante que o contêiner ocupe 100% da altura da janela
-    display: 'flex', // Define o modo de layout como flexbox
-    flexDirection: 'column', // Organiza os filhos (header, lista) em uma coluna
+    flex: 1, // << CORREÇÃO AQUI
   },
   header: {
     flexDirection: "row",
