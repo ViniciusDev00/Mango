@@ -17,6 +17,7 @@ import TelaBusca from "../screens/TelaBusca";
 
 // Importe o provedor de contexto
 import { FavoritesProvider } from "./contexts/FavoritesContext";
+import { UserProvider } from "./contexts/UserContext"; // <-- NOVO IMPORTADO
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -120,17 +121,19 @@ function MainTabNavigator() {
 // Estrutura principal do App
 export default function App() {
   return (
-    <FavoritesProvider>
-      <NavigationContainer>
-        <StatusBar style="light" />
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Main" component={MainTabNavigator} />
-          <Stack.Screen name="TelaBusca" component={TelaBusca} />
-          {/* CORREÇÃO APLICADA AQUI */}
-          <Stack.Screen name="DetalhesFilme" component={DetalhesFilme} />
-          <Stack.Screen name="DetalhesSerie" component={DetalhesSerie} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </FavoritesProvider>
+    <UserProvider> {/* <-- CORREÇÃO: UserProvider deve envolver tudo */}
+      <FavoritesProvider>
+        <NavigationContainer>
+          <StatusBar style="light" />
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Main" component={MainTabNavigator} />
+            <Stack.Screen name="TelaBusca" component={TelaBusca} />
+            {/* CORREÇÃO APLICADA AQUI */}
+            <Stack.Screen name="DetalhesFilme" component={DetalhesFilme} />
+            <Stack.Screen name="DetalhesSerie" component={DetalhesSerie} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </FavoritesProvider>
+    </UserProvider>
   );
 }

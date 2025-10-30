@@ -41,10 +41,8 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Não renderiza o app até que os dados do usuário sejam carregados
-  if (isLoading) {
-    return null; 
-  }
+  // REMOVIDO: O BLOCO "if (isLoading) { return null; }"
+  // Ele estava causando o crash ao desmontar o App durante o carregamento do AsyncStorage.
 
   return (
     <UserContext.Provider value={{ user, updateUser }}>
