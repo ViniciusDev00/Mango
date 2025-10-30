@@ -19,18 +19,12 @@ import { UserContext } from '../src/contexts/UserContext';
 
 export default function TelaPerfil() {
   const navigation = useNavigation();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  // REMOVIDO: const [isDarkMode, setIsDarkMode] = useState(true);
   const { favorites } = useContext(FavoritesContext);
   const { user } = useContext(UserContext); // Pega os dados do usuário do contexto
 
-  const handleToggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
-    Alert.alert(
-      "Modo Escuro",
-      "A funcionalidade completa de troca de tema será implementada futuramente."
-    );
-  };
-  
+  // REMOVIDA: handleToggleDarkMode
+
   const handleAccountSettings = () => {
     navigation.navigate('Configuracoes');
   };
@@ -92,7 +86,6 @@ export default function TelaPerfil() {
             <Text style={styles.statText}>Favoritos</Text>
           </View>
         </View>
-
         <View style={styles.menuContainer}>
           <TouchableOpacity 
             style={styles.menuItem}
@@ -114,17 +107,9 @@ export default function TelaPerfil() {
             <Text style={styles.menuText}>Acessibilidade</Text>
             <Ionicons name="chevron-forward" size={20} color="gray" />
           </TouchableOpacity>
-          <View style={styles.menuItem}>
-            <MaterialCommunityIcons name="theme-light-dark" size={24} color="white" />
-            <Text style={styles.menuText}>Modo Escuro</Text>
-            <Switch
-              trackColor={{ false: "#767577", true: "#F5A623" }}
-              thumbColor={isDarkMode ? "#fff" : "#f4f3f4"}
-              onValueChange={handleToggleDarkMode}
-              value={isDarkMode}
-              accessibilityLabel="Alternar modo escuro"
-            />
-          </View>
+          
+          {/* REMOVIDO: Item de Menu "Modo Escuro" */}
+
           <TouchableOpacity 
             style={styles.menuItem} 
             onPress={handleLogout}

@@ -15,9 +15,15 @@ import DetalhesSerie from "../screens/DetalhesSerie";
 import TelaPerfil from "../screens/TelaPerfil";
 import TelaBusca from "../screens/TelaBusca";
 
+// Importe as telas que faltavam
+import TelaConfiguracoes from "../screens/TelaConfiguracoes";
+import TelaAcessibilidade from "../screens/TelaAcessibilidade";
+import TelaEditarPerfil from "../screens/TelaEditarPerfil";
+import TelaPrivacidade from "../screens/TelaPrivacidade";
+
 // Importe o provedor de contexto
 import { FavoritesProvider } from "./contexts/FavoritesContext";
-import { UserProvider } from "./contexts/UserContext"; // <-- NOVO IMPORTADO
+import { UserProvider } from "./contexts/UserContext";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -66,6 +72,7 @@ function PerfilStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PerfilTab" component={TelaPerfil} />
+      {/* As telas de configuração NÃO ficam aqui, elas vão para o Stack principal */}
     </Stack.Navigator>
   );
 }
@@ -80,8 +87,8 @@ function MainTabNavigator() {
         tabBarStyle: {
           backgroundColor: "#181818",
           borderTopWidth: 0,
-          height: 70,          // altura um pouco menor
-          paddingBottom: 15,   // espaçamento inferior equilibrado
+          height: 70, // altura um pouco menor
+          paddingBottom: 15, // espaçamento inferior equilibrado
           paddingTop: 10,
         },
         tabBarActiveTintColor: "white",
@@ -95,10 +102,14 @@ function MainTabNavigator() {
             return <Ionicons name={iconName} size={size} color={color} />;
           } else if (route.name === "Filmes") {
             iconName = focused ? "movie-play" : "movie-play-outline";
-            return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+            return (
+              <MaterialCommunityIcons name={iconName} size={size} color={color} />
+            );
           } else if (route.name === "Séries") {
             iconName = focused ? "television-play" : "television";
-            return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+            return (
+              <MaterialCommunityIcons name={iconName} size={size} color={color} />
+            );
           } else if (route.name === "Favoritos") {
             iconName = focused ? "star" : "star-outline";
             return <Ionicons name={iconName} size={size} color={color} />;
@@ -121,16 +132,21 @@ function MainTabNavigator() {
 // Estrutura principal do App
 export default function App() {
   return (
-    <UserProvider> {/* <-- CORREÇÃO: UserProvider deve envolver tudo */}
+    <UserProvider>
       <FavoritesProvider>
         <NavigationContainer>
           <StatusBar style="light" />
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Main" component={MainTabNavigator} />
             <Stack.Screen name="TelaBusca" component={TelaBusca} />
-            {/* CORREÇÃO APLICADA AQUI */}
             <Stack.Screen name="DetalhesFilme" component={DetalhesFilme} />
             <Stack.Screen name="DetalhesSerie" component={DetalhesSerie} />
+            
+            {/* TELAS ADICIONADAS PARA CORRIGIR A NAVEGAÇÃO */}
+            <Stack.Screen name="Configuracoes" component={TelaConfiguracoes} />
+            <Stack.Screen name="Acessibilidade" component={TelaAcessibilidade} />
+            <Stack.Screen name="EditarPerfil" component={TelaEditarPerfil} />
+            <Stack.Screen name="Privacidade" component={TelaPrivacidade} />
           </Stack.Navigator>
         </NavigationContainer>
       </FavoritesProvider>
