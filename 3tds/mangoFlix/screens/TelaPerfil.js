@@ -1,6 +1,6 @@
 // src/screens/TelaPerfil.js
 
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react'; // Removido useState (não era usado)
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Switch,
+  // Removido Switch (não era usado)
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,11 +19,8 @@ import { UserContext } from '../src/contexts/UserContext';
 
 export default function TelaPerfil() {
   const navigation = useNavigation();
-  // REMOVIDO: const [isDarkMode, setIsDarkMode] = useState(true);
   const { favorites } = useContext(FavoritesContext);
   const { user } = useContext(UserContext); // Pega os dados do usuário do contexto
-
-  // REMOVIDA: handleToggleDarkMode
 
   const handleAccountSettings = () => {
     navigation.navigate('Configuracoes');
@@ -65,8 +62,8 @@ export default function TelaPerfil() {
             style={styles.profileImage}
             accessibilityLabel="Foto de perfil do usuário"
           />
-          <Text style={styles.profileName}>{user.name}</Text> {/* Usa o nome do contexto */}
-          <Text style={styles.profileEmail}>{user.email}</Text> {/* Usa o e-mail do contexto */}
+          <Text style={styles.profileName}>{user.name}</Text>
+          <Text style={styles.profileEmail}>{user.email}</Text>
         </View>
 
         <View style={styles.statsContainer}>
@@ -108,7 +105,7 @@ export default function TelaPerfil() {
             <Ionicons name="chevron-forward" size={20} color="gray" />
           </TouchableOpacity>
           
-          {/* REMOVIDO: Item de Menu "Modo Escuro" */}
+          {/* Todos os comentários JSX foram removidos daqui para garantir */}
 
           <TouchableOpacity 
             style={styles.menuItem} 
