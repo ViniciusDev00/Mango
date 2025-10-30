@@ -252,7 +252,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212",
     height: '100vh',
     display: 'flex',
-    flexDirection: 'column' 
+    flexDirection: 'column', 
+    flex: 1,
   },
   scrollView: { flex: 1 },
   // 4. Estilo da imagem corrigido (igual ao DetalhesSerie)
