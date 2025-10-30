@@ -7,10 +7,17 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { FavoritesContext } from "../src/contexts/FavoritesContext";
+
+const { width } = Dimensions.get('window');
+const NUM_COLUMNS = 3;
+const GRID_PADDING = 5;  
+const ITEM_MARGIN = 5;
+const itemWidth = (width - (GRID_PADDING * 2) - (ITEM_MARGIN * 2 * NUM_COLUMNS)) / NUM_COLUMNS;
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
@@ -107,17 +114,16 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     flex: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: GRID_PADDING,
   },
   posterContainer: {
-    flex: 1,
-    margin: 5,
-    aspectRatio: 2 / 3,
+    width: itemWidth, // <-- ADICIONE ESTA LINHA (largura fixa)
+    margin: ITEM_MARGIN,
   },
   posterImage: {
     width: "100%",
-    height: "100%",
     borderRadius: 10,
+    aspectRatio: 2 / 3,
   },
   posterTitle: {
     color: "white",
