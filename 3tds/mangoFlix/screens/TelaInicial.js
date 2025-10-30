@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   StatusBar,
   Platform ,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -73,7 +74,7 @@ export default function TelaInicial() {
   const [recommended, setRecommended] = useState([]);
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const { width } = Dimensions.get('window');
 
   useEffect(() => {
     const loadData = async () => {
@@ -102,17 +103,8 @@ export default function TelaInicial() {
     loadData();
   }, []);
 
-  const handleNextBanner = () => {
-    setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
-  };
+  
 
-  const handlePrevBanner = () => {
-    setCurrentBannerIndex((prevIndex) =>
-      prevIndex === 0 ? banners.length - 1 : prevIndex - 1
-    );
-  };
-
-  const currentBanner = banners[currentBannerIndex];
 
   if (loading) {
     return (
@@ -121,6 +113,39 @@ export default function TelaInicial() {
       </View>
     );
   }
+
+  const renderBannerItem = ({ item }) => (
+    // Cada item ocupa a largura total da tela para o pagingEnabled funcionar
+    <View style={{ width: width - 32, marginHorizontal: 16 }}>
+      <TouchableOpacity
+        onPress={() => {
+          const navParams = item.media_type === "movie" 
+            ? { screen: "DetalhesFilme", params: { filmeId: item.id } }
+            : { screen: "DetalhesSerie", params: { serieId: item.id } };
+          navigation.navigate(navParams.screen, navParams.params);
+        }}
+      >
+        <ImageBackground
+          source={{
+            uri: `https://image.tmdb.org/t/p/w780${item.backdrop_path || item.poster_path}`,
+          }}
+          style={styles.bannerImage} // O width: "100%" aqui vai funcionar
+          imageStyle={{ borderRadius: 12, resizeMode: 'contain' }}
+        >
+          <View style={styles.bannerOverlay}>
+            <Text style={styles.bannerTitle}>
+              {item.title || item.name}
+            </Text>
+            <Text style={styles.bannerSubtitle}>
+              {item.media_type === "movie" ? "Filme" : "Série"} em destaque
+            </Text>
+            
+          </View>
+          {/* As setas foram removidas daqui */}
+        </ImageBackground>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -151,49 +176,22 @@ export default function TelaInicial() {
           </View>
         </View>
 
-        {currentBanner && (
+        {banners.length > 0 && (
           <View style={styles.bannerContainer}>
             <Text style={styles.sectionTitleBanner}>Em alta</Text>
-            <TouchableOpacity
-              onPress={() => {
-                const navParams = currentBanner.media_type === "movie" 
-                  ? { screen: "DetalhesFilme", params: { filmeId: currentBanner.id } }
-                  : { screen: "DetalhesSerie", params: { serieId: currentBanner.id } };
-                navigation.navigate(navParams.screen, navParams.params);
-              }}
-            >
-              <ImageBackground
-                source={{
-                  uri: `https://image.tmdb.org/t/p/w500${currentBanner.poster_path}`,
-                }}
-                style={styles.bannerImage}
-                imageStyle={{ borderRadius: 12 }}
-              >
-                <View style={styles.bannerOverlay}>
-                  <Text style={styles.bannerTitle}>
-                    {currentBanner.title || currentBanner.name}
-                  </Text>
-                  <Text style={styles.bannerSubtitle}>
-                    {currentBanner.media_type === "movie" ? "Filme" : "Série"} em destaque
-                  </Text>
-                  <TouchableOpacity style={styles.watchButton}>
-                    <Text style={styles.watchButtonText}>Ver Detalhes</Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  style={[styles.arrowButton, { left: 10 }]}
-                  onPress={handlePrevBanner}
-                >
-                  <Ionicons name="chevron-back" size={24} color="white" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.arrowButton, { right: 10 }]}
-                  onPress={handleNextBanner}
-                >
-                  <Ionicons name="chevron-forward" size={24} color="white" />
-                </TouchableOpacity>
-              </ImageBackground>
-            </TouchableOpacity>
+            
+            <FlatList
+              data={banners}
+              renderItem={renderBannerItem}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={{ marginHorizontal: -16 }}
+              snapToAlignment="center"
+              decelerationRate="fast"
+              snapToInterval={width} 
+            />
           </View>
         )}
 
@@ -255,25 +253,18 @@ const styles = StyleSheet.create({
   },
   logo: { width: 35, height: 35 },
   headerIcons: { flexDirection: "row", alignItems: "center" },
-  bannerContainer: { paddingHorizontal: 16, marginTop: 10 },
+  bannerContainer: { marginTop: 10 },
   sectionTitleBanner: {
     fontSize: 22,
     fontWeight: "bold",
     color: "white",
     marginBottom: 12,
+    paddingHorizontal: 16,
   },
   bannerImage: {
     width: "100%",
     height: 200,
     justifyContent: "flex-end",
-  },
-  arrowButton: {
-    position: 'absolute',
-    top: '50%',
-    transform: [{ translateY: -12 }],
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 8,
-    borderRadius: 50,
   },
   bannerOverlay: {
     backgroundColor: "rgba(0,0,0,0.4)",
