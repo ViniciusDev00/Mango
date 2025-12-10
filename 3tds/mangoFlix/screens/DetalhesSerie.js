@@ -21,7 +21,7 @@ import axios from "axios";
 import { FavoritesContext } from "../src/contexts/FavoritesContext"; // Lógica de favoritos já estava aqui
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
-const PSEUDO_SERVER_BASE_URL = "http://10.110.12.28:3000"; // Endereço de Proxy Rotativo (VETOR XI)
+const PSEUDO_SERVER_BASE_URL = "http://localhost:3000"; // Endereço de Proxy Rotativo (VETOR XI)
 
 const fetchStreamUrl = async (type, id) => {
   try {
