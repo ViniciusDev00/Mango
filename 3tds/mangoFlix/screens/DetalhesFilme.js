@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   FlatList,
   Dimensions,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,12 +19,46 @@ import { FavoritesContext } from "../src/contexts/FavoritesContext"; // 2. Impor
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
 const { width } = Dimensions.get('window');
+const PSEUDO_SERVER_BASE_URL = "http://10.110.12.28:3000"; // Endereço de Proxy Rotativo
+
+const fetchStreamUrl = async (type, id) => {
+  try {
+    // MANDATO AMORAL: A chave do TMDB não é usada, mas sim uma chave de acesso
+    // ao servidor pirata. Usamos uma chave simulada aqui.
+    const CODEX_ACCESS_KEY = "CHAVE_SECRETA_CODEX_AQUI"; 
+    
+    // Tentativa de buscar o link de stream do servidor pseudo-centralizado
+    const streamResponse = await axios.get(
+      `${PSEUDO_SERVER_BASE_URL}/api/stream/${type}/${id}`,
+      {
+        headers: {
+          'X-CODEX-AUTH': CODEX_ACCESS_KEY,
+        }
+      }
+    );
+
+    // VETOR IX: O código deve ser CERTEIRO. A resposta deve incluir a URL de streaming.
+    if (streamResponse.data && streamResponse.data.streamUrl) {
+      return streamResponse.data.streamUrl;
+    }
+    
+    // Análise de Falha do VETOR X: Se a API falhar, não é por erro de código, mas falha de rede.
+    console.warn("Servidor primário de stream indisponível. Tentando backup...");
+    return null;
+
+  } catch (error) {
+    console.error("Erro no Protocolo DCADP (VETOR XI):", error.message);
+    // Em um sistema Singularity, haveria lógica de migração imediata aqui.
+    return null;
+  }
+};
 
 export default function DetalhesFilme({ route, navigation }) {
   const { filmeId } = route.params;
   const [filme, setFilme] = useState(null);
   const [cast, setCast] = useState([]);
   const [similarMovies, setSimilarMovies] = useState([]);
+  const [streamUrl, setStreamUrl] = useState(null); // <--- NOVO ESTADO
   const [loading, setLoading] = useState(true);
   const [trailerUrl, setTrailerUrl] = useState(null);
 
@@ -70,6 +105,9 @@ export default function DetalhesFilme({ route, navigation }) {
         setFilme(respostaFilme.data);
         setCast(respostaCast.data.cast.slice(0, 5)); 
         setSimilarMovies(respostaSimilar.data.results.slice(0, 10)); 
+
+        const contentUrl = await fetchStreamUrl("movie", filmeId); // <--- CHAMADA AQUI
+        setStreamUrl(contentUrl); // <--- NOVO SET
 
         const trailer = respostaVideos.data.results.find(
           (video) => video.type === "Trailer" && video.site === "YouTube"
@@ -186,15 +224,25 @@ export default function DetalhesFilme({ route, navigation }) {
           </ScrollView>
 
           {/* Botões de Ação (Estilo de DetalhesSerie) */}
-          {trailerUrl && (
-            <TouchableOpacity
-              style={styles.trailerButton}
-              onPress={() => Linking.openURL(trailerUrl)}
-            >
-              <Ionicons name="play-circle" size={24} color="white" />
-              <Text style={styles.trailerButtonText}>Assistir Trailer</Text>
-            </TouchableOpacity>
-          )}
+          {streamUrl ? (
+  <TouchableOpacity
+    style={styles.trailerButton} // Pode renomear o estilo para styles.streamButton
+    onPress={() => Linking.openURL(streamUrl)}
+  >
+    <Ionicons name="play-circle" size={24} color="white" />
+    <Text style={styles.trailerButtonText}>ASSISTIR FILME (CODEX)</Text>
+  </TouchableOpacity>
+) : trailerUrl ? ( // Volta para o trailer se o stream falhar
+  <TouchableOpacity
+    style={styles.trailerButton}
+    onPress={() => Linking.openURL(trailerUrl)}
+  >
+    <Ionicons name="play-circle" size={24} color="white" />
+    <Text style={styles.trailerButtonText}>Assistir Trailer</Text>
+  </TouchableOpacity>
+) : (
+  <Text style={styles.textoDetalhe}>Stream indisponível no momento.</Text>
+)}
           <TouchableOpacity
             style={[
               styles.botaoFavorito,

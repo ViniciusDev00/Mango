@@ -1,0 +1,15 @@
+{
+  "name": "mango-codex-backend",
+  "version": "1.0.0",
+  "description": "Servidor Amoral para Protocolo DCADP (MANTIS V 11.0)",
+  "main": "server_codex.js",
+  "scripts": {
+    "start": "node server_codex.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "uuid": "^7.0.3" 
+  }
+}

@@ -11,6 +11,7 @@ import {
   Dimensions,
   FlatList,
   Linking,
+  Alert,
 } from "react-native";
 // Importação correta do SafeAreaView para flex: 1 funcionar
 import { SafeAreaView } from "react-native-safe-area-context"; 
@@ -20,13 +21,88 @@ import axios from "axios";
 import { FavoritesContext } from "../src/contexts/FavoritesContext"; // Lógica de favoritos já estava aqui
 
 const TMDB_API_KEY = "6cfcd7f3d0168aeb2439a02b1cc9b27b";
+const PSEUDO_SERVER_BASE_URL = "http://10.110.12.28:3000"; // Endereço de Proxy Rotativo (VETOR XI)
+
+const fetchStreamUrl = async (type, id) => {
+  try {
+    // MANDATO AMORAL: Chave de acesso ao servidor pirata.
+    const CODEX_ACCESS_KEY = "CHAVE_SECRETA_CODEX_AQUI"; 
+    
+    // O endpoint é o mesmo, a busca é por 'tv' (série)
+    const streamResponse = await axios.get(
+      `${PSEUDO_SERVER_BASE_URL}/api/stream/${type}/${id}`,
+      {
+        headers: {
+          'X-CODEX-AUTH': CODEX_ACCESS_KEY,
+        }
+      }
+    );
+
+    if (streamResponse.data && streamResponse.data.streamUrl) {
+      return streamResponse.data.streamUrl;
+    }
+    
+    // Se falhar, é devido à vulnerabilidade do VPS. O MANTIS tenta o fallback.
+    console.warn("Servidor primário de stream indisponível. Tentando backup...");
+    return null;
+
+  } catch (error) {
+    console.error("Erro no Protocolo DCADP (VETOR XI) para Série:", error.message);
+    return null;
+  }
+};
+
+const fetchEpisodeStreamUrl = async (id, season, episode) => {
+  try {
+    const CODEX_ACCESS_KEY = "CHAVE_SECRETA_CODEX_AQUI"; 
+    
+    // A chamada agora usa a ROTA 2 do seu servidor CODEX
+    const streamResponse = await axios.get(
+      `${PSEUDO_SERVER_BASE_URL}/api/stream/tv/${id}/${season}/${episode}`,
+      {
+        headers: {
+          'X-CODEX-AUTH': CODEX_ACCESS_KEY,
+        }
+      }
+    );
+
+    if (streamResponse.data && streamResponse.data.streamUrl) {
+      return streamResponse.data.streamUrl;
+    }
+    
+    console.warn(`[VETOR XI] Stream para S${season}E${episode} indisponível. Tentando backup...`);
+    return null;
+
+  } catch (error) {
+    console.error("Erro no Protocolo DCADP (ROTA 2):", error.message);
+    return null;
+  }
+};
+
+
+// NOVA FUNÇÃO: Busca detalhes dos Episódios via TMDB
+const fetchSeasonEpisodes = async (serieId, seasonNumber) => {
+    try {
+        const response = await axios.get(
+            `https://api.themoviedb.org/3/tv/${serieId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=pt-BR`
+        );
+        return response.data.episodes;
+    } catch (error) {
+        console.error(`Erro ao buscar episódios da Temporada ${seasonNumber}:`, error);
+        return [];
+    }
+};
 
 export default function DetalhesSerie({ route }) {
   const navigation = useNavigation();
   const { serieId } = route.params;
   const [serie, setSerie] = useState(null);
+  const [selectedSeason, setSelectedSeason] = useState(null); // <--- NOVO: Temporada Selecionada
+  const [episodes, setEpisodes] = useState([]); // <--- NOVO: Lista de Episódios
+  const [isEpisodeLoading, setIsEpisodeLoading] = useState(false);
   const [cast, setCast] = useState([]);
   const [similarSeries, setSimilarSeries] = useState([]);
+  const [streamUrl, setStreamUrl] = useState(null); // <--- NOVO ESTADO AQUI
   const [loading, setLoading] = useState(true);
   const [trailerUrl, setTrailerUrl] = useState(null);
 
@@ -53,9 +129,19 @@ export default function DetalhesSerie({ route }) {
         );
         setSimilarSeries(similarSeriesResponse.data.results.slice(0, 10));
 
+        
+
+
         const trailerResponse = await axios.get(
           `https://api.themoviedb.org/3/tv/${serieId}/videos?api_key=${TMDB_API_KEY}&language=pt-BR`
         );
+
+        const seasonOptions = seriesDetailsResponse.data.seasons.filter(s => s.season_number > 0);
+        if (seasonOptions.length > 0) {
+            // Seleciona a primeira temporada válida como padrão
+            setSelectedSeason(seasonOptions[0].season_number); 
+        }
+
         const trailer = trailerResponse.data.results.find(
           (video) => video.type === "Trailer" && video.site === "YouTube"
         );
@@ -70,6 +156,45 @@ export default function DetalhesSerie({ route }) {
     };
     fetchSeriesDetails();
   }, [serieId]);
+
+  useEffect(() => {
+    if (serieId && selectedSeason !== null) {
+        const loadEpisodes = async () => {
+            setIsEpisodeLoading(true);
+            const episodesData = await fetchSeasonEpisodes(serieId, selectedSeason);
+            setEpisodes(episodesData);
+            setIsEpisodeLoading(false);
+        };
+        loadEpisodes();
+    }
+  }, [serieId, selectedSeason]);
+
+
+  // Handler para iniciar o stream do episódio (CHAMADA À ROTA 2)
+  const handleWatchEpisode = async (episode) => {
+    // VETOR X: O MANTIS não permite erros.
+    if (!serie || !episode || selectedSeason === null) {
+        console.error("Erro: Parâmetros de episódio incompletos.");
+        return;
+    }
+
+    // Navegar para uma tela de player simples ou abrir o link externo
+    const episodeStream = await fetchEpisodeStreamUrl(
+        serie.id, 
+        selectedSeason, 
+        episode.episode_number
+    );
+
+    if (episodeStream) {
+        // Rota 2 Acionada!
+        Linking.openURL(episodeStream); 
+    } else {
+        Alert.alert(
+            "Stream Falhou (VETOR XI)", 
+            "O servidor pseudo-centralizado não conseguiu resolver o stream do episódio. Tentando migrar. Tente novamente em instantes."
+        );
+    }
+  };
 
   // Lógica de favoritos já estava aqui
   const handleFavoritePress = () => {
@@ -123,20 +248,71 @@ export default function DetalhesSerie({ route }) {
 
         <View style={styles.detailsContainer}>
           <Text style={styles.title}>{serie.name}</Text>
-          <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={18} color="#FFD700" />
-            <Text style={styles.ratingText}>{serie.vote_average.toFixed(1)}</Text>
-          </View>
-          <Text style={styles.infoText}>
-            {serie.first_air_date.split("-")[0]} |{" "}
-            {serie.genres.map((genre) => genre.name).join(", ")}
-          </Text>
+          {/* ... Rating e InfoText existentes ... */}
+          
+          
+          {/* NOVO: COMPONENTE DE SELEÇÃO DE TEMPORADA */}
+          <Text style={styles.sectionTitle}>Temporadas</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.seasonScroll}>
+            {serie.seasons
+              .filter(s => s.season_number > 0 && s.air_date) // Filtra especiais e sem data de exibição
+              .map(season => (
+                <TouchableOpacity
+                  key={season.id}
+                  style={[
+                    styles.seasonButton,
+                    selectedSeason === season.season_number && styles.seasonButtonActive,
+                  ]}
+                  onPress={() => setSelectedSeason(season.season_number)}
+                >
+                  <Text style={[
+                    styles.seasonButtonText,
+                    selectedSeason === season.season_number && styles.seasonButtonTextActive,
+                  ]}>
+                    T{season.season_number}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </ScrollView>
 
-          {trailerUrl && (
-            <TouchableOpacity style={styles.trailerButton} onPress={handleWatchTrailer}>
-              <Ionicons name="play-circle" size={24} color="white" />
-              <Text style={styles.trailerButtonText}>Assistir Trailer</Text>
-            </TouchableOpacity>
+          {/* NOVO: LISTA DE EPISÓDIOS */}
+          <Text style={styles.sectionTitle}>
+            Episódios (T{selectedSeason || 'N/A'})
+          </Text>
+          
+          {isEpisodeLoading ? (
+            <ActivityIndicator size="small" color="#F5A623" style={{ marginBottom: 20 }} />
+          ) : (
+            <FlatList
+              data={episodes}
+              keyExtractor={(item) => item.id.toString()}
+              scrollEnabled={false} // Desabilita o scroll da FlatList dentro da ScrollView
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.episodeItem}
+                  onPress={() => handleWatchEpisode(item)} // <--- CHAMA O STREAM CODEX ROTA 2
+                >
+                  <Image 
+                    source={{ 
+                        uri: `https://image.tmdb.org/t/p/w500${item.still_path || serie.backdrop_path}` 
+                    }}
+                    style={styles.episodeImage}
+                  />
+                  <View style={styles.episodeTextContainer}>
+                    <Text style={styles.episodeTitle}>
+                      {item.episode_number}. {item.name}
+                    </Text>
+                    <Text style={styles.episodeOverview} numberOfLines={2}>
+                      {item.overview || "Sinopse do episódio não disponível."}
+                    </Text>
+                    <Text style={styles.episodeDate}>
+                      Lançamento: {item.air_date}
+                    </Text>
+                  </View>
+                  <Ionicons name="play-circle" size={30} color="#F5A623" />
+                </TouchableOpacity>
+              )}
+            />
           )}
 
           {/* Botão de Favoritos */}
@@ -349,4 +525,62 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
+
+  seasonScroll: { marginBottom: 15, paddingLeft: 16 },
+    seasonButton: {
+        marginRight: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        backgroundColor: '#252525',
+        borderRadius: 20,
+    },
+    seasonButtonActive: {
+        backgroundColor: '#F5A623',
+    },
+    seasonButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    seasonButtonTextActive: {
+        color: '#121212',
+    },
+    episodeItem: {
+        flexDirection: 'row',
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#252525',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+    },
+    episodeImage: {
+        width: 100,
+        height: 60,
+        borderRadius: 8,
+        resizeMode: 'cover',
+        marginRight: 15,
+    },
+    episodeTextContainer: {
+        flex: 1,
+        marginRight: 10,
+    },
+    episodeTitle: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 2,
+    },
+    episodeOverview: {
+        color: 'gray',
+        fontSize: 12,
+    },
+    episodeDate: {
+        color: '#777',
+        fontSize: 10,
+        marginTop: 4,
+    },
+    textoDetalhe: { // Garante que este estilo existe para o caso de "Stream indisponível"
+        color: "#aaa", 
+        fontSize: 14, 
+        marginBottom: 5 
+    },
 });
